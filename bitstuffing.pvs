@@ -35,14 +35,27 @@ BEGIN
 	ELSE
 	    IF rep_count >= max_rep AND s(0) IFF rep_bit THEN
 	        LET tail: bit_seq = ^^(s, (1, s`length)) IN
-	          o(single(NOT rep_bit), o(single(rep_bit), stuff(tail, 0, False)))
+	          o(single(NOT rep_bit), o(single(s(0)), stuff(tail, 1, s(0)))) % Fall 1
 	    ELSE
 	        LET tail: bit_seq = ^^(s, (1, s`length)) IN
 		LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
-	          o(single(s(0)), stuff(tail, new_count, s(0)))
+	          o(single(s(0)), stuff(tail, new_count, s(0))) % Fall 2
 	    ENDIF
 	ENDIF
     MEASURE s`length
+    % Beweisidee für die tcc
+    % Bei Fall 1 und Fall 2 entsteht durch das zusammenhängen eine stufffed bit_seq, denn
+    % wenn wir s_0 mit stuff(s_1..n, 1, s(0)) zusammenhängen
+    % beginnt stuff(s_1..n, 1, s(0)) mit max. max_rep-1 gleichen bits
+    % Also entsteht durch das Zusammenhängen maximal max_rep Wiederholungen -> stuffed? ist erfüllt
+    n: VAR below(max_rep)
+    b: VAR bool
+    stuff_starts: FORMULA
+        FORALL(s: {s: bit_seq | s`length > max_rep}): %Bitsequenz bei der Stuffing nötig sein könnte
+            LET res = stuff(s, n, b) IN	   	      
+	       EXISTS(i: below(max_rep+1-n)):	      %0..3+1-0 -> muss mindestens einer verschieden zu b sein
+	           NOT b IFF res(i)
+	    
     
     unstuff(ss: stuffed_bit_seq, rep_count: nat, rep_bit: bool): bit_seq
     
