@@ -7,51 +7,27 @@ BEGIN
     % 1000010
     max_rep: nat
 
-    % Länge der Sequenzen
-    unstuffed_len: nat
-    stuffed_len: nat
-
-    % Mögliche Indizes für eine Sequenz
-    unstuffed_index: TYPE = {i: nat | i < unstuffed_len}
-    stuffed_index: TYPE = {i: nat | i < stuffed_len}  
+    range: VAR[nat, nat]
 
     %  "unstuffed" Bitsequenz
-    unstuffed_bit_seq: TYPE = [unstuffed_index->bool]
+    %unstuffed_bit_seq: TYPE = [unstuffed_index->bool]
+    bit_seq: TYPE = finite_sequence[bool]
     
-    % Abschnitt der "stuffed" Sequenz
-    range: TYPE = {r: [stuffed_index, stuffed_index] | r`1 <= r`2 }
-    range_len(r: range): nat = r`2 - r`1
-    % Alle Indizes in der Sequenz
-    range_indices(r: range): TYPE = {i: stuffed_index | r`1 <= i AND i < r`2}
-
+    
+    % für alle indizes i teilfolge aus gleichen bits
+    % index aus i, so dass von alle j von i + 1 bis i + max_rep - 1 s(j) = s(
     % In der Bitsequenz ist die Anzahl gleicher aufeinandender Bits <= max_rep
-    stuffed?(s: [stuffed_index->bool]): bool =
-    	NOT EXISTS(r: range):
-	    range_len(r) > max_rep AND
-	    FORALL(i: range_indices(r)):
-	        s(i) IFF s(0)	% Nicht alle Bits dürfen gleich (dem 0ten) sein 
+    stuffed?(s: bit_seq): bool =
+    	s`length <= max_rep OR
+    	NOT EXISTS(start: below(s`length - max_rep)):
+	    FORALL(i: {i: nat | i > start AND i <= start + max_rep}):
+	         s(start) IFF s(i)
 	    
     % "stuffed" Bitsequenz
-    stuffed_bit_seq: TYPE = { s: [stuffed_index->bool] | stuffed?(s) }
+    stuffed_bit_seq: TYPE = (stuffed?)
 
-    % Hilfstype um bereits bekannten Wiederholungen zu merken
-    % [Gemerkte Wiederholungen, Wiederholte Bit]
-    rep_info: TYPE = [#count: nat, bit: bool#]
-
-    % Sequenzoperationen
-    tail(s: unstuffed_bit_seq): unstuffed_bit_seq =
-    	LAMBDA(i: unstuffed_index):
-	     s(i+1)
-	     
-    zero: stuffed_index = 0
-    %cons(bit: bool, s: stuffed_bit_seq): stuffed_bit_seq =
-    %	LAMBDA(i: stuffed_index):
-    %	     IF i == 0 THEN bit ELSE s(i) ENDIF
-
-    stuff(s: unstuffed_bit_seq, ri: rep_info): stuffed_bit_seq %=
-    %    IF ri`count >= max_rep AND s()
-    %	THEN
-    %	ELSE stuff()
-    unstuff(ss: stuffed_bit_seq, ri: rep_info): unstuffed_bit_seq
+    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): stuffed_bit_seq
+    
+    unstuff(ss: stuffed_bit_seq, rep_count: nat, rep_bit: bool): bit_seq
     
 END bitstuffing
