@@ -7,13 +7,14 @@ BEGIN
     % 1000010
     max_rep: nat
 
-    range: VAR[nat, nat]
+    % Sequenz mit beliebiger Länge
+    bit_seq: TYPE = finite_sequence[bool]    
+    % Sequenz mit genau n Bits
+    fix_seq(n: nat): TYPE = {s: bit_seq | s`length = n}
+    % Sequenzen mit mehr als n Bits
+    min_seq(n: nat): TYPE = {s: bit_seq | s`length >= n}
 
-    %  "unstuffed" Bitsequenz
-    %unstuffed_bit_seq: TYPE = [unstuffed_index->bool]
-    bit_seq: TYPE = finite_sequence[bool]
-    
-    
+    % Bedingung für Ergebnis der "stuff" Funktions
     % für alle indizes i teilfolge aus gleichen bits
     % index aus i, so dass von alle j von i + 1 bis i + max_rep - 1 s(j) = s(
     % In der Bitsequenz ist die Anzahl gleicher aufeinandender Bits <= max_rep
@@ -26,35 +27,45 @@ BEGIN
     % "stuffed" Bitsequenz
     stuffed_bit_seq: TYPE = (stuffed?)
 
-    single(el: bool): bit_seq =
+    min_stuffed(n: nat): TYPE = {s: min_seq(n)| stuffed?(s)}
+
+    % Wrapper um genau ein Element
+    single(el: bool): fix_seq(1) =
         (# length := 1, seq := LAMBDA(i: below(1)): el #)
 
-    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE stuffed_bit_seq =
+    % Alle Bits außer das erste
+    tail(s: min_seq(1)): fix_seq(s`length-1)  =
+        s ^^ (1, s`length)
+
+    % Füge Element an "Kopf" einer Sequenz
+    cons(head: bool, tail: bit_seq): fix_seq(tail`length + 1) =
+        single(head) o tail
+
+    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE min_seq(s`length) =
         IF s`length = 0 THEN
 	    empty_seq
 	ELSE
 	    IF rep_count >= max_rep AND s(0) IFF rep_bit THEN
-	        LET tail: bit_seq = ^^(s, (1, s`length)) IN
-	          o(single(NOT rep_bit), o(single(s(0)), stuff(tail, 1, s(0)))) % Fall 1
+	        cons(NOT s(0), cons(s(0), stuff(tail(s), 1, s(0)))) % Fall 1
 	    ELSE
-	        LET tail: bit_seq = ^^(s, (1, s`length)) IN
 		LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
-	          o(single(s(0)), stuff(tail, new_count, s(0))) % Fall 2
+	            cons(s(0), stuff(tail(s), new_count, s(0))) % Fall 2
 	    ENDIF
 	ENDIF
     MEASURE s`length
+
     % Beweisidee für die tcc
     % Bei Fall 1 und Fall 2 entsteht durch das zusammenhängen eine stufffed bit_seq, denn
     % wenn wir s_0 mit stuff(s_1..n, 1, s(0)) zusammenhängen
     % beginnt stuff(s_1..n, 1, s(0)) mit max. max_rep-1 gleichen bits
     % Also entsteht durch das Zusammenhängen maximal max_rep Wiederholungen -> stuffed? ist erfüllt
-    n: VAR below(max_rep)
-    b: VAR bool
-    stuff_starts: FORMULA
-        FORALL(s: {s: bit_seq | s`length > max_rep}): %Bitsequenz bei der Stuffing nötig sein könnte
-            LET res = stuff(s, n, b) IN	   	      
-	       EXISTS(i: below(max_rep+1-n)):	      %0..3+1-0 -> muss mindestens einer verschieden zu b sein
-	           NOT b IFF res(i)
+    %n: VAR below(max_rep)
+    %b: VAR bool
+    %stuff_starts: FORMULA
+    %    FORALL(s: {s: bit_seq | s`length > max_rep}): %Bitsequenz bei der Stuffing nötig sein könnte
+    %        LET res = stuff(s, n, b) IN	   	      
+    %	       EXISTS(i: below(min(max_rep+1-n, res`length))):	      %0..3+1-0 -> muss mindestens einer verschieden zu b sein
+    %	           NOT b IFF res(i)
 	    
     
     unstuff(ss: stuffed_bit_seq, rep_count: nat, rep_bit: bool): bit_seq
