@@ -5,29 +5,28 @@ BEGIN
     % 100001 -> Okay da 4 wiederholende Nullen
     % 100000 -> Nicht Okay, wird von stuff-Funktion umgewandelt zu:
     % 1000010
-    max_rep: nat
+    % max_rep: nat
+    MAX_REP: above(0)
+
+    maximal(m: nat): type = {n: nat | n <= m}
 
     % Sequenz mit beliebiger Länge
     bit_seq: TYPE = finite_sequence[bool]    
     % Sequenz mit genau n Bits
     fix_seq(n: nat): TYPE = {s: bit_seq | s`length = n}
-    % Sequenzen mit mehr als n Bits
+    % Sequenzen mit mehr als oder gleich n Bits
     min_seq(n: nat): TYPE = {s: bit_seq | s`length >= n}
 
     % Bedingung für Ergebnis der "stuff" Funktions
-    % für alle indizes i teilfolge aus gleichen bits
-    % index aus i, so dass von alle j von i + 1 bis i + max_rep - 1 s(j) = s(
-    % In der Bitsequenz ist die Anzahl gleicher aufeinandender Bits <= max_rep
+    % index aus i, so dass von alle j von i + 1 bis i + max_rep - 1
+    % s(j) = s(
     stuffed?(s: bit_seq): bool =
-    	s`length <= max_rep OR
-    	NOT EXISTS(start: below(s`length - max_rep)):
-	    FORALL(i: {i: nat | i > start AND i <= start + max_rep}):
+    	s`length <= MAX_REP OR
+    	NOT EXISTS(start: below(s`length - MAX_REP)):
+	    FORALL(i: {i: nat | i > start AND i <= start + MAX_REP}):
 	         s(start) IFF s(i)
-	    
-    % "stuffed" Bitsequenz
-    stuffed_bit_seq: TYPE = (stuffed?)
-
-    min_stuffed(n: nat): TYPE = {s: min_seq(n)| stuffed?(s)}
+    
+    % min_stuffed(n: nat, r: nat): TYPE = {s: min_seq(n)| stuffed?(s, r)}
 
     % Wrapper um genau ein Element
     single(el: bool): fix_seq(1) =
@@ -37,15 +36,51 @@ BEGIN
     tail(s: min_seq(1)): fix_seq(s`length-1)  =
         s ^^ (1, s`length)
 
-    % Füge Element an "Kopf" einer Sequenz
+    % Füge Bit als "Kopf" an eine Sequenz an
     cons(head: bool, tail: bit_seq): fix_seq(tail`length + 1) =
         single(head) o tail
+
+    cons_stuffed: FORMULA
+        FORALL(head: bool, tail: {s: min_seq(1) | stuffed?(s)}):
+	    head XOR tail(0) IMPLIES stuffed?(cons(head,tail))
+
+    cons_same_head: FORMULA
+        FORALL(head: bool, tail: bit_seq, n: below(tail`length)):
+	    tail(n) IFF head IMPLIES
+	        LET c = cons(head, tail) IN
+	        FORALL(i: below(n+1)): c(i) IFF c(0)
+
+    % "stuffed" Bitsequenz
+    % enthaltene bit_seq muss stuffed? sein
+    % Speicher außerdem: Information über Wiederholungen am ANFANG der Liste
+    stuffed_bit_seq: TYPE = {r: [# seq: bit_seq, r_cnt: maximal(MAX_REP), r_bit: bool  #]
+        | stuffed?(r`seq) AND
+	FORALL(i: below(min(r`r_cnt, r`seq`length))): r`r_bit IFF r`seq(i)
+    }
+
+    min_stuffed(l: nat): TYPE = {s: stuffed_bit_seq | s`seq`length >= l}
+
+    empty: stuffed_bit_seq =
+        (# seq := empty_seq, r_cnt := 0, r_bit := False #)
+
+    accept_bool(s: stuffed_bit_seq): TYPE = {b: bool | s`r_cnt >= MAX_REP - 1 IMPLIES b XOR s`r_bit}
+
+    cons(tail: stuffed_bit_seq, head: accept_bool(tail)): stuffed_bit_seq =
+        (# seq := cons(head, tail`seq),
+	   r_cnt := IF head IFF tail`r_bit THEN tail`r_cnt+1 ELSE 1 ENDIF,
+	   r_bit := head #)
+
+    n: VAR nat
+    %cons(head: bool, tail: stuffed_bit_seq): fix_seq(tail`length + 1)
+
+    %STUFF_TEST: FORMULA
+    %    NOT stuffed?(cons(false, cons(false, single(False))),2)
 
     stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE min_seq(s`length) =
         IF s`length = 0 THEN
 	    empty_seq
 	ELSE
-	    IF rep_count >= max_rep AND s(0) IFF rep_bit THEN
+	    IF rep_count >= MAX_REP AND s(0) IFF rep_bit THEN
 	        cons(NOT s(0), cons(s(0), stuff(tail(s), 1, s(0)))) % Fall 1
 	    ELSE
 		LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
@@ -59,13 +94,12 @@ BEGIN
     % wenn wir s_0 mit stuff(s_1..n, 1, s(0)) zusammenhängen
     % beginnt stuff(s_1..n, 1, s(0)) mit max. max_rep-1 gleichen bits
     % Also entsteht durch das Zusammenhängen maximal max_rep Wiederholungen -> stuffed? ist erfüllt
-    %n: VAR below(max_rep)
+    %n: VAR below(MAX_REP)
     %b: VAR bool
     %stuff_starts: FORMULA
-    %    FORALL(s: {s: bit_seq | s`length > max_rep}): %Bitsequenz bei der Stuffing nötig sein könnte
-    %        LET res = stuff(s, n, b) IN	   	      
-    %	       EXISTS(i: below(min(max_rep+1-n, res`length))):	      %0..3+1-0 -> muss mindestens einer verschieden zu b sein
-    %	           NOT b IFF res(i)
+    %    FORALL(s: min_seq(MAX_REP + 1)): %Bitsequenz bei der Stuffing nötig sein könnte   
+    %	    EXISTS(i: below(MAX_REP+1-n)):	      %0..3+1-0 -> muss mindestens einer verschieden zu b sein
+    % 	        NOT b IFF stuff(s, n, b)(i)
 	    
     
     unstuff(ss: stuffed_bit_seq, rep_count: nat, rep_bit: bool): bit_seq
