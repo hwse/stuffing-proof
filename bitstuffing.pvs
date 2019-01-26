@@ -26,7 +26,23 @@ BEGIN
     % "stuffed" Bitsequenz
     stuffed_bit_seq: TYPE = (stuffed?)
 
-    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): stuffed_bit_seq
+    single(el: bool): bit_seq =
+        (# length := 1, seq := LAMBDA(i: below(1)): el #)
+
+    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE stuffed_bit_seq =
+        IF s`length = 0 THEN
+	    empty_seq
+	ELSE
+	    IF rep_count >= max_rep AND s(0) IFF rep_bit THEN
+	        LET tail: bit_seq = ^^(s, (1, s`length)) IN
+	          o(single(NOT rep_bit), o(single(rep_bit), stuff(tail, 0, False)))
+	    ELSE
+	        LET tail: bit_seq = ^^(s, (1, s`length)) IN
+		LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
+	          o(single(s(0)), stuff(tail, new_count, s(0)))
+	    ENDIF
+	ENDIF
+    MEASURE s`length
     
     unstuff(ss: stuffed_bit_seq, rep_count: nat, rep_bit: bool): bit_seq
     
