@@ -52,8 +52,75 @@
     (O const-decl "finseq" finite_sequences nil)
     (int_minus_int_is_int application-judgement "int" integers nil))
    nil))
+ (cons_stuffed_TCC1 0
+  (cons_stuffed_TCC1-1 nil 3757567434 ("" (subtype-tcc) nil nil) nil
+   nil))
+ (cons_stuffed 0
+  (cons_stuffed-1 nil 3757567976
+   ("" (skosimp)
+    (("" (assert)
+      (("" (expand "stuffed?")
+        (("" (smash)
+          (("" (skosimp) (("" (assert) (("" (postpone) nil nil)) nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   nil shostak))
+ (cons_same_head_TCC1 0
+  (cons_same_head_TCC1-1 nil 3757567434 ("" (subtype-tcc) nil nil)
+   ((single const-decl "fix_seq(1)" bitstuffing nil)
+    (O const-decl "finseq" finite_sequences nil)
+    (cons const-decl "fix_seq(tail`length + 1)" bitstuffing nil)
+    (int_minus_int_is_int application-judgement "int" integers nil))
+   nil))
+ (cons_same_head_TCC2 0
+  (cons_same_head_TCC2-1 nil 3757567434 ("" (subtype-tcc) nil nil)
+   ((single const-decl "fix_seq(1)" bitstuffing nil)
+    (O const-decl "finseq" finite_sequences nil)
+    (cons const-decl "fix_seq(tail`length + 1)" bitstuffing nil)
+    (int_minus_int_is_int application-judgement "int" integers nil))
+   nil))
  (stuffed_bit_seq_TCC1 0
   (stuffed_bit_seq_TCC1-1 nil 3757522114 ("" (subtype-tcc) nil nil)
+   ((real_gt_is_strict_total_order name-judgement
+     "(strict_total_order?[real])" real_props nil)
+    (nat_min application-judgement "{k: nat | k <= i AND k <= j}"
+     real_defs nil)
+    (real_lt_is_strict_total_order name-judgement
+     "(strict_total_order?[real])" real_props nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (bit_seq type-eq-decl nil bitstuffing nil)
+    (MAX_REP const-decl "above(0)" bitstuffing nil)
+    (above nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (maximal type-eq-decl nil bitstuffing nil)
+    (min const-decl "{p: real | p <= m AND p <= n}" real_defs nil)
+    (<= const-decl "bool" reals nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (>= const-decl "bool" reals nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (< const-decl "bool" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number nonempty-type-decl nil numbers nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (finseq_appl const-decl "[below[length(fs)] -> T]" finite_sequences
+     nil)
+    (stuffed? const-decl "bool" bitstuffing nil))
+   nil))
+ (fix_stuffed_TCC1 0
+  (fix_stuffed_TCC1-1 nil 3757567618 ("" (subtype-tcc) nil nil)
    ((real_gt_is_strict_total_order name-judgement
      "(strict_total_order?[real])" real_props nil)
     (nat_min application-judgement "{k: nat | k <= i AND k <= j}"
@@ -101,7 +168,6 @@
     (stuffed? const-decl "bool" bitstuffing nil)
     (finseq_appl const-decl "[below[length(fs)] -> T]" finite_sequences
      nil)
-    (empty_seq const-decl "finseq" finite_sequences nil)
     (real_gt_is_strict_total_order name-judgement
      "(strict_total_order?[real])" real_props nil)
     (nat_min application-judgement "{k: nat | k <= i AND k <= j}"
@@ -129,7 +195,8 @@
     (number nonempty-type-decl nil numbers nil)
     (NOT const-decl "[bool -> bool]" booleans nil)
     (bool nonempty-type-eq-decl nil booleans nil)
-    (boolean nonempty-type-decl nil booleans nil))
+    (boolean nonempty-type-decl nil booleans nil)
+    (empty_seq const-decl "finseq" finite_sequences nil))
    nil))
  (cons_TCC2 0
   (cons_TCC2-1 nil 3757522114 ("" (subtype-tcc) nil nil)
