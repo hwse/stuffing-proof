@@ -5,10 +5,10 @@ BEGIN
     % 100001 -> Okay da 4 wiederholende Nullen
     % 100000 -> Nicht Okay, wird von stuff-Funktion umgewandelt zu:
     % 1000010
-    % max_rep: nat
-    MAX_REP: above(0)
+    MAX_REP: nat
 
-    maximal(m: nat): type = {n: nat | n <= m}
+    maximal(m: nat): TYPE = {n: nat | n <= m}
+    between(s: nat, e: nat): TYPE = {n: nat | s <= n AND n <= e}
 
     % Sequenz mit beliebiger Länge
     bit_seq: TYPE = finite_sequence[bool]    
@@ -19,12 +19,12 @@ BEGIN
 
     % Bedingung für Ergebnis der "stuff" Funktions
     % index aus i, so dass von alle j von i + 1 bis i + max_rep - 1
-    % s(j) = s(
+    % s(j) = s(i)
     stuffed?(s: bit_seq): bool =
     	s`length <= MAX_REP OR
-    	NOT EXISTS(start: below(s`length - MAX_REP)):
-	    FORALL(i: {i: nat | i >= start AND i <= start + MAX_REP}):
-	         s(start) IFF s(i)
+	NOT EXISTS(start: below(s`length - MAX_REP)):
+	    FORALL(i: between(start, start+MAX_REP)):
+	        s(start) IFF s(i)
 
     fix_stuffed(l: nat): TYPE = {s: fix_seq(l) | stuffed?(s)}
     min_stuffed(l: nat): TYPE = {s: min_seq(l) | stuffed?(s)}
@@ -43,79 +43,63 @@ BEGIN
 
     % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
     % 	   * tail`length < MAX_REP ist
-    %	   * head ungleich ersten Element von tail ist
-    cons_stuffed: FORMULA
+    % Beweis über Länge: tail`length + 1 <= MAX_REP 
+    cons_smaller: FORMULA
         FORALL(head: bool, tail: (stuffed?)):
-	    (tail`length < MAX_REP) OR (head XOR tail(0))
-	        IMPLIES stuffed?(cons(head,tail))
-
-    % ???
-    cons_same_head: FORMULA
-        FORALL(head: bool, tail: bit_seq, n: below(tail`length)):
-	    tail(n) IFF head IMPLIES
-	        LET c = cons(head, tail) IN
-	        FORALL(i: below(n+1)): c(i) IFF c(0)
-
-    % "stuffed" Bitsequenz + Informationen über Wiederholungen am Anfange der 
-    stuffed_bit_seq: TYPE = {r: [# seq: bit_seq, r_cnt: maximal(MAX_REP), r_bit: bool #]
-        | stuffed?(r`seq) AND
-	FORALL(i: below(min(r`r_cnt, r`seq`length))): r`r_bit IFF r`seq(i)
-    }
-
-    fix_stuffed_seq(l: nat): TYPE = {s: stuffed_bit_seq | s`seq`length = l}
-
-    min_stuffed_seq(l: nat): TYPE = {s: stuffed_bit_seq | s`seq`length >= l}
-
-    empty: fix_stuffed_seq(0) =
-        (# seq := empty_seq, r_cnt := 0, r_bit := False #)
-
-    accept_bool(s: stuffed_bit_seq): TYPE = {b: bool | s`r_cnt >= MAX_REP - 1 IMPLIES b XOR s`r_bit}
-
-    cons(tail: stuffed_bit_seq, head: accept_bool(tail)): fix_stuffed_seq(tail`seq`length + 1) =
-        (# seq := cons(head, tail`seq),
-	   r_cnt := IF head IFF tail`r_bit THEN tail`r_cnt+1 ELSE 1 ENDIF,
-	   r_bit := head #)
+	    (tail`length < MAX_REP) IMPLIES
+	        stuffed?(cons(head,tail))
+		
+    % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
+    %	   * head ungleich ersten Element von tail ist
+    % Beweis: Head ist unterschiedlich zu tail(0) -> also muss Eigenschaft erfüllt sein
+    cons_xor: FORMULA
+        FORALL(head: bool, tail: min_stuffed(MAX_REP+1)):
+	    (head XOR tail(0)) IMPLIES
+	        stuffed?(cons(head,tail))
 
     % Tail von einer "stuffed" Sequenz ist immer auch Stuffed
     tail_stuffed: FORMULA
         FORALL(s: min_stuffed(1)):
 	    stuffed?(tail(s))
 
-    %n: VAR nat
-    %cons(head: bool, tail: stuffed_bit_seq): fix_seq(tail`length + 1)
-
-    %STUFF_TEST: FORMULA
-    %    NOT stuffed?(cons(false, cons(false, single(False))),2)
-
-    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE min_stuffed_seq(s`length) =
+    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE min_stuffed(s`length) =
         IF s`length = 0 THEN
-	    empty
+	    empty_seq
 	ELSE
 	    IF rep_count >= MAX_REP AND s(0) IFF rep_bit THEN
-	        cons(cons(stuff(tail(s), 1, s(0)), s(0)), NOT s(0)) % Fall 1
+	        cons(NOT s(0), cons(s(0), stuff(tail(s), 1, s(0)))) % Fall 1
 	    ELSE
 		LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
-	            cons(stuff(tail(s), new_count, s(0)), s(0)) % Fall 2
+	            cons(s(0), stuff(tail(s), new_count, s(0))) % Fall 2
 	    ENDIF
 	ENDIF
     MEASURE s`length
 
-    unstuff(s: (stuffed?), rep_count: nat, rep_bit: bool): RECURSIVE bit_seq =
-        IF s`length = 0 THEN
-	    empty_seq
-	ELSE
-	    IF rep_count >= MAX_REP-1 AND s(0) IFF rep_bit THEN
-	        cons(s(0), unstuff(tail(tail(s)), 0, False))
-	    ELSE
-	        LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
-		    cons(s(0), unstuff(tail(s), new_count, s(0)))
-    	    ENDIF
-	ENDIF
-    MEASURE s`length
+    
+    % für n > 0 gibt stuff eine Sequenz zurück, die weniger als MAX_REP gleiche Bits hat
+    stuff_helper: FORMULA
+        FORALL(s: min_seq(MAX_REP), n: between(1,MAX_REP), b: bool):
+	    LET r = stuff(s, n, b) IN
+	    NOT FORALL(i: between(0, MAX_REP-1)): 
+	        r(0) IFF r(i)
+	    
 
-    correct: FORMULA
-        FORALL(s: bit_seq):
-	    s = unstuff(stuff(s, 0, False)`seq, 0, False)
+%    unstuff(s: (stuffed?), rep_count: nat, rep_bit: bool): RECURSIVE bit_seq =
+%        IF s`length = 0 THEN
+%	    empty_seq
+%	ELSE
+%	    IF rep_count >= MAX_REP-1 AND s(0) IFF rep_bit THEN
+%	        cons(s(0), unstuff(tail(tail(s)), 0, False))
+%	    ELSE
+%	        LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
+%		    cons(s(0), unstuff(tail(s), new_count, s(0)))
+%    	    ENDIF
+%	ENDIF
+%    MEASURE s`length
+
+%    correct: FORMULA
+%        FORALL(s: bit_seq):
+%	    s = unstuff(stuff(s, 0, False)`seq, 0, False)
 
     % Beweisidee für die tcc
     % Bei Fall 1 und Fall 2 entsteht durch das zusammenhängen eine stufffed bit_seq, denn
