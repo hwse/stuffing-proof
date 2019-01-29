@@ -5,7 +5,7 @@ BEGIN
     % 100001 -> Okay da 4 wiederholende Nullen
     % 100000 -> Nicht Okay, wird von stuff-Funktion umgewandelt zu:
     % 1000010
-    MAX_REP: nat
+    MAX_REP: posint
 
     maximal(m: nat): TYPE = {n: nat | n <= m}
     between(s: nat, e: nat): TYPE = {n: nat | s <= n AND n <= e}
@@ -23,7 +23,7 @@ BEGIN
     stuffed?(s: bit_seq): bool =
     	s`length <= MAX_REP OR
 	NOT EXISTS(start: below(s`length - MAX_REP)):
-	    FORALL(i: between(start, start+MAX_REP)):
+	    FORALL(i: between(start+1, start+MAX_REP)):
 	        s(start) IFF s(i)
 
     fix_stuffed(l: nat): TYPE = {s: fix_seq(l) | stuffed?(s)}
@@ -41,6 +41,27 @@ BEGIN
     cons(head: bool, tail: bit_seq): fix_seq(tail`length + 1) =
         single(head) o tail
 
+    % PVS über Sequenzen "schlaumachen"
+    % Beweis über expanden der ganzen Funktionen
+    cons_first: FORMULA
+        FORALL(b: bool, tail: bit_seq):
+	    b IFF (cons(b,tail)(0))
+
+    % Beweis über expanden der ganzen Funktionen
+    cons_first_tail: FORMULA
+        FORALL(b: bool, tail: min_seq(1)):
+	    tail(0) IFF cons(b, tail)(1)
+
+    % Beweis über expanden der ganzen Funktionen
+    cons_length: FORMULA
+        FORALL(head: bool, tail: bit_seq):
+	    cons(head, tail)`length = tail`length + 1
+
+    % Wie oben
+    cons_get: FORMULA
+        FORALL(head: bool, tail: bit_seq)(i: between(0, tail`length-1)):
+	     tail(i) IFF cons(head, tail)(i+1)
+
     % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
     % 	   * tail`length < MAX_REP ist
     % Beweis über Länge: tail`length + 1 <= MAX_REP 
@@ -48,10 +69,26 @@ BEGIN
         FORALL(head: bool, tail: (stuffed?)):
 	    (tail`length < MAX_REP) IMPLIES
 	        stuffed?(cons(head,tail))
+
+    % Beweis mit (case "y=0")
+    %for_helper: FORMULA
+    %    FORALL(l: above(0), con: [below(l)->bool]):
+    %	    (con(0) and (FORALL(x: between(1, l)): con(x))) IMPLIES
+    %	         (FORALL(y: between(0, l)): con(y))
+
+    % Wenn ich Seqeunzen mit cons verbinde und Ersten MAX_REP-1 Elemente von
+    % head verschieden sind ist wieder (stuffed?) erfüllt
+    % Beweis mit (case start=0) und dann mit cons_get und cons_first benutzen   
+    cons_stuffed: FORMULA
+        FORALL(head: bool, tail: min_stuffed(MAX_REP+1)):
+            LET c = cons(head, tail) IN
+            (NOT FORALL(i: between(1, MAX_REP)): head IFF tail(i-1)) IMPLIES
+	        stuffed?(c)
 		
     % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
     %	   * head ungleich ersten Element von tail ist
     % Beweis: Head ist unterschiedlich zu tail(0) -> also muss Eigenschaft erfüllt sein
+    % Beweis über cons_stuffed 
     cons_xor: FORMULA
         FORALL(head: bool, tail: min_stuffed(MAX_REP+1)):
 	    (head XOR tail(0)) IMPLIES
@@ -62,6 +99,10 @@ BEGIN
         FORALL(s: min_stuffed(1)):
 	    stuffed?(tail(s))
 
+    % Beweis über cons
+    % wenn bei stuff rep_count > 0 hat Ergebnis nicht mehr als MAX_REP - rep_count gleiche Bits am Anfange
+    % -> also kann man s(0) anhägen
+    % Fall1: da s(0) negiert wird -> cons_xor
     stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE min_stuffed(s`length) =
         IF s`length = 0 THEN
 	    empty_seq
@@ -76,11 +117,11 @@ BEGIN
     MEASURE s`length
 
     
-    % für n > 0 gibt stuff eine Sequenz zurück, die weniger als MAX_REP gleiche Bits hat
+    % für n > 0 gibt stuff eine Sequenz zurück, die mit wengier als MAX_REP gleichen Bits beginnt
     stuff_helper: FORMULA
         FORALL(s: min_seq(MAX_REP), n: between(1,MAX_REP), b: bool):
 	    LET r = stuff(s, n, b) IN
-	    NOT FORALL(i: between(0, MAX_REP-1)): 
+	    NOT FORALL(i: between(0, MAX_REP)): 
 	        r(0) IFF r(i)
 	    
 
