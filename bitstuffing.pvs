@@ -99,6 +99,23 @@ BEGIN
         FORALL(s: min_stuffed(1)):
 	    stuffed?(tail(s))
 
+    % stuffed bit_seq an die ich immer vorne ein beliebiges bit anhängen kann
+    % und sie dann immer noch stuffed ist
+    consable?(s: bit_seq): bool =
+        s`length < MAX_REP OR 
+	NOT FORALL(i: between(1, MAX_REP-1)):
+	    s(0) IFF s(i)
+
+    % Kombination von stuffed? und consable?
+    stuffed_consable: TYPE = {s: bit_seq |
+        consable?(s) AND stuffed?(s) %TODO: Fall length = MAX_REP ausschließen
+    }
+
+    % wenn irgend ein bit an stuffed_consable angehängt wird ist dies immer noch stuffed?
+    consable_stuffed: FORMULA
+        FORALL(s: stuffed_consable, b: bool):
+	    stuffed?(cons(b, s))
+
     % Beweis über cons
     % wenn bei stuff rep_count > 0 hat Ergebnis nicht mehr als MAX_REP - rep_count gleiche Bits am Anfange
     % -> also kann man s(0) anhägen
@@ -116,10 +133,19 @@ BEGIN
 	ENDIF
     MEASURE s`length
 
+    % wenn ich stuff mit rep_count > 0 und korrekten parametern aufrufe,
+    % dann ist das ergebnis immer consable?
+    stuff_consable: FORMULA
+        FORALL(s: bit_seq, rep_count: above(0), rep_bit: bool):
+	    ((FORALL(i: between(1, rep_count)): s(0) IFF s(i)) AND % rep_count ist #gleicher Bits am Anfang von s 
+	    s(0) IFF rep_bit) IMPLIES		     	       	   % rep_bit das wiederholende Bit ist
+	        consable?(stuff(s, rep_count, rep_bit))
+		
+
     
     % für n > 0 gibt stuff eine Sequenz zurück, die mit wengier als MAX_REP gleichen Bits beginnt
     stuff_helper: FORMULA
-        FORALL(s: min_seq(MAX_REP), n: between(1,MAX_REP), b: bool):
+        FORALL(s: bit_seq, n: between(1,MAX_REP), b: bool):
 	    LET r = stuff(s, n, b) IN
 	    NOT FORALL(i: between(0, MAX_REP)): 
 	        r(0) IFF r(i)
