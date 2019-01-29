@@ -310,14 +310,8 @@
      integers nil)
     (real_le_is_total_order name-judgement "(total_order?[real])"
      real_props nil)
-    (i!1 skolem-const-decl "between(1, MAX_REP)" bitstuffing nil)
     (between type-eq-decl nil bitstuffing nil)
     (AND const-decl "[bool, bool -> bool]" booleans nil)
-    (start!1 skolem-const-decl
-     "below(cons(head!1, tail!1)`length - MAX_REP)" bitstuffing nil)
-    (tail!1 skolem-const-decl "min_stuffed(1 + MAX_REP)" bitstuffing
-     nil)
-    (head!1 skolem-const-decl "bool" bitstuffing nil)
     (<= const-decl "bool" reals nil)
     (real_ge_is_total_order name-judgement "(total_order?[real])"
      real_props nil)
@@ -362,6 +356,8 @@
      integers nil)
     (real_le_is_total_order name-judgement "(total_order?[real])"
      real_props nil)
+    (real_gt_is_strict_total_order name-judgement
+     "(strict_total_order?[real])" real_props nil)
     (real_lt_is_strict_total_order name-judgement
      "(strict_total_order?[real])" real_props nil)
     (finseq_appl const-decl "[below[length(fs)] -> T]" finite_sequences
@@ -425,6 +421,8 @@
   (consable?_TCC1-1 nil 3757763723 ("" (subtype-tcc) nil nil)
    ((real_lt_is_strict_total_order name-judgement
      "(strict_total_order?[real])" real_props nil)
+    (real_ge_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
     (int_minus_int_is_int application-judgement "int" integers nil)
     (real_le_is_total_order name-judgement "(total_order?[real])"
      real_props nil)
@@ -457,6 +455,8 @@
   (consable?_TCC2-1 nil 3757763723 ("" (subtype-tcc) nil nil)
    ((real_lt_is_strict_total_order name-judgement
      "(strict_total_order?[real])" real_props nil)
+    (real_ge_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
     (int_minus_int_is_int application-judgement "int" integers nil)
     (real_le_is_total_order name-judgement "(total_order?[real])"
      real_props nil)
@@ -485,20 +485,88 @@
     (bool nonempty-type-eq-decl nil booleans nil)
     (boolean nonempty-type-decl nil booleans nil))
    nil))
+ (consable_helper_TCC1 0
+  (consable_helper_TCC1-1 nil 3757786347 ("" (subtype-tcc) nil nil) nil
+   nil))
+ (consable_helper_TCC2 0
+  (consable_helper_TCC2-1 nil 3757786347 ("" (subtype-tcc) nil nil) nil
+   nil))
+ (consable_helper_TCC3 0
+  (consable_helper_TCC3-1 nil 3757786347 ("" (subtype-tcc) nil nil)
+   ((finseq_appl const-decl "[below[length(fs)] -> T]" finite_sequences
+     nil)
+    (single const-decl "fix_seq(1)" bitstuffing nil)
+    (O const-decl "finseq" finite_sequences nil)
+    (cons const-decl "fix_seq(tail`length + 1)" bitstuffing nil)
+    (int_minus_int_is_int application-judgement "int" integers nil))
+   nil))
+ (consable_helper_TCC4 0
+  (consable_helper_TCC4-1 nil 3757786347 ("" (subtype-tcc) nil nil)
+   ((finseq_appl const-decl "[below[length(fs)] -> T]" finite_sequences
+     nil)
+    (single const-decl "fix_seq(1)" bitstuffing nil)
+    (O const-decl "finseq" finite_sequences nil)
+    (cons const-decl "fix_seq(tail`length + 1)" bitstuffing nil)
+    (int_minus_int_is_int application-judgement "int" integers nil))
+   nil))
+ (consable_helper 0
+  (consable_helper-1 nil 3757786431
+   ("" (skolem!)
+    (("" (flatten)
+      (("" (assert)
+        (("" (skolem!)
+          (("" (inst -1 "i!1+1")
+            (("" (lemma "cons_get") (("" (postpone) nil nil)) nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   nil shostak))
  (consable_stuffed 0
   (consable_stuffed-1 nil 3757763881
    ("" (skolem!)
     (("" (typepred "s!1")
       (("" (expand "consable?")
         (("" (expand "stuffed?" 1)
-          (("" (split -1)
-            (("1" (flatten)
-              (("1" (lemma "cons_length")
-                (("1" (inst -1 "b!1" "s!1") (("1" (assert) nil nil))
+          (("" (expand "stuffed?")
+            (("" (split)
+              (("1" (split)
+                (("1" (flatten)
+                  (("1" (lemma "cons_length")
+                    (("1" (inst -1 "b!1" "s!1")
+                      (("1" (assert) nil nil)) nil))
+                    nil))
+                  nil)
+                 ("2" (flatten)
+                  (("2" (lemma "cons_length")
+                    (("2" (inst -1 "b!1" "s!1")
+                      (("2" (assert) nil nil)) nil))
+                    nil))
+                  nil))
+                nil)
+               ("2" (flatten)
+                (("2" (split)
+                  (("1" (split)
+                    (("1" (lemma "cons_length")
+                      (("1" (inst -1 "b!1" "s!1")
+                        (("1" (assert) nil nil)) nil))
+                      nil)
+                     ("2" (lemma "cons_length")
+                      (("2" (inst -1 "b!1" "s!1")
+                        (("2" (assert)
+                          (("2" (skolem!)
+                            (("2" (assert) (("2" (postpone) nil nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil)
+                   ("2" (postpone) nil nil))
                   nil))
                 nil))
-              nil)
-             ("2" (expand "stuffed?") (("2" (postpone) nil nil)) nil))
+              nil))
             nil))
           nil))
         nil))
@@ -536,6 +604,8 @@
     (NOT const-decl "[bool -> bool]" booleans nil)
     (bool nonempty-type-eq-decl nil booleans nil)
     (boolean nonempty-type-decl nil booleans nil)
+    (real_le_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
     (real_ge_is_total_order name-judgement "(total_order?[real])"
      real_props nil)
     (empty_seq const-decl "finseq" finite_sequences nil)

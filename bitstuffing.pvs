@@ -22,9 +22,10 @@ BEGIN
     % s(j) = s(i)
     stuffed?(s: bit_seq): bool =
     	s`length <= MAX_REP OR
+	(s`length > MAX_REP AND
 	NOT EXISTS(start: below(s`length - MAX_REP)):
 	    FORALL(i: between(start+1, start+MAX_REP)):
-	        s(start) IFF s(i)
+	        s(start) IFF s(i))
 
     fix_stuffed(l: nat): TYPE = {s: fix_seq(l) | stuffed?(s)}
     min_stuffed(l: nat): TYPE = {s: min_seq(l) | stuffed?(s)}
@@ -102,14 +103,25 @@ BEGIN
     % stuffed bit_seq an die ich immer vorne ein beliebiges bit anhängen kann
     % und sie dann immer noch stuffed ist
     consable?(s: bit_seq): bool =
-        s`length < MAX_REP OR 
+        s`length < MAX_REP OR
+	(s`length >= MAX_REP AND
 	NOT FORALL(i: between(1, MAX_REP-1)):
-	    s(0) IFF s(i)
+	    s(0) IFF s(i))
 
     % Kombination von stuffed? und consable?
     stuffed_consable: TYPE = {s: bit_seq |
         consable?(s) AND stuffed?(s) %TODO: Fall length = MAX_REP ausschließen
     }
+
+    % Bitsequenz: in den n ersrten Bits sind nicht alle Bits gleich
+    % Dann: hängt man beliebiges bit an -> gilt jene Eigenschaft für n-1
+    consable_helper: FORMULA
+        FORALL(n: nat, head: bool, tail: min_seq(n)):
+	    (NOT FORALL(i: between(1, n-1)):
+	        tail(0) IFF tail(i)) IMPLIES
+		    LET c = cons(head, tail) IN
+		    NOT FORALL(i: between(1, c`length-1)):
+		        c(0) IFF c(i)
 
     % wenn irgend ein bit an stuffed_consable angehängt wird ist dies immer noch stuffed?
     consable_stuffed: FORMULA
