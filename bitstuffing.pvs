@@ -110,9 +110,51 @@ BEGIN
 
     % Kombination von stuffed? und consable?
     stuffed_consable: TYPE = {s: bit_seq |
-        consable?(s) AND stuffed?(s) %TODO: Fall length = MAX_REP ausschließen
+        consable?(s) AND stuffed?(s)
     }
 
+    consable_cons: FORMULA
+        FORALL(head: bool, tail: min_seq(2)):
+            LET c = cons(head, tail) IN
+	    (NOT FORALL(i: between(1, c`length-1)):
+	        c(1) IFF c(i)) IMPLIES
+		     (NOT FORALL(i: between(1, tail`length-1)):
+		         tail(0) IFF tail(i))
+	
+
+    consable_modulo: FORMULA
+        FORALL(seq: min_seq(MAX_REP), n: nat):
+	    (NOT FORALL(i: between(1, MAX_REP)):
+	        seq(mod(0+n, MAX_REP)) IFF seq(mod(i+n, MAX_REP))) IMPLIES
+		    (NOT FORALL(i: between(1, MAX_REP)):
+		        seq(0) IFF seq(i))
+
+    % Idee: wenn NOT FORALL bzw. EXISTS in bereich gilt, kann der Bereich vergrößert werden
+    % Lässt sich leicht beweisen
+    forall_test: FORMULA
+        FORALL(range: nat, con: [nat->bool]):
+            ((NOT FORALL(n: below(range)):
+	         con(n)) IMPLIES
+		     (NOT FORALL(n: below(range+1)):
+		         con(n)))
+
+    % Idee: Eigenschaft: Es gibt mind. ein unterschiedliches Bit umdrehen
+    % 0 IFF 1 2 3 4
+    % 4 IFF 0 1 2 3
+    % Beweisbar, da ein Bit mit allen anderen verglichen
+    reverse_condition: FORMULA
+        FORALL(c: min_seq(1), range: below(c`length), start: below(c`length)):
+	    (NOT FORALL(i: between(1, range-1)):
+	        c(0) IFF c(i)) IMPLIES
+		    (NOT FORALL(i: between(0, range-2)):
+		         c(range-1) IFF c(i))
+
+    cons_get_2: FORMULA
+        FORALL(head: bool, tail: bit_seq, i: below(tail`length-1)):
+	    cons(head, tail)(i) =
+	        IF i = 0 THEN head ELSE
+		tail(i-1) ENDIF
+    
     % Bitsequenz: in den n ersrten Bits sind nicht alle Bits gleich
     % Dann: hängt man beliebiges bit an -> gilt jene Eigenschaft für n-1
     consable_helper: FORMULA
@@ -122,9 +164,13 @@ BEGIN
 		    LET c = cons(head, tail) IN
 		    NOT FORALL(i: between(1, c`length-1)):
 		        c(0) IFF c(i)
+    % - 0 1 2 3
+    % - 0 1 1 1
+    % 1 2 3 4 5
+    % 1 0 1 1 1
 
     % wenn irgend ein bit an stuffed_consable angehängt wird ist dies immer noch stuffed?
-    consable_stuffed: FORMULA
+    consable_stuffed: FORMULA % Problem Ungleichheit immer am 0.Bit festgemacht
         FORALL(s: stuffed_consable, b: bool):
 	    stuffed?(cons(b, s))
 
