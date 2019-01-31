@@ -42,6 +42,8 @@ BEGIN
     cons(head: bool, tail: bit_seq): fix_seq(tail`length + 1) =
         single(head) o tail
 
+    % ==== CONS HELPER ===
+
     % PVS über Sequenzen "schlaumachen"
     % Beweis über expanden der ganzen Funktionen
     cons_first: FORMULA
@@ -70,6 +72,31 @@ BEGIN
 	        IF i = 0 THEN head ELSE
 		tail(i-1) ENDIF
 
+    % ==== TAIL HELPER ====
+
+    tail_length: FORMULA
+        FORALL(seq: min_seq(1)):
+	    tail(seq)`length = seq`length - 1
+
+    tail_get: FORMULA
+        FORALL(seq: min_seq(2), i: between(1, seq`length-2)):
+	    seq(i) = tail(seq)(i-1)
+
+    only_zero: AXIOM
+        FORALL(x: bit_seq):
+	    (x`length = 0) IMPLIES x = empty_seq
+
+    zeros_equal: AXIOM
+        FORALL(x: bit_seq, y: bit_seq):
+	    (x`length = 0 AND y`length = 0)
+	        IMPLIES (x = y)
+
+    % PROBLEM: lässt sich nicht beweisen
+    tail_cons: FORMULA
+        FORALL(head: bool, seq: bit_seq):
+	    seq = tail(cons(head, seq))
+
+    % ==== FORMULAS ====
     % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
     % 	   * tail`length < MAX_REP ist
     % Beweis über Länge: tail`length + 1 <= MAX_REP 
@@ -78,9 +105,6 @@ BEGIN
 	    (tail`length < MAX_REP) IMPLIES
 	        stuffed?(cons(head,tail))
 
-    test: FORMULA
-        FORALL(s: (stuffed?)):
-	    (stuffed?(s))
     % Wenn ich Seqeunzen mit cons verbinde und Ersten MAX_REP-1 Elemente von
     % head verschieden sind ist wieder (stuffed?) erfüllt
     % Beweis mit (case start=0) und dann mit cons_get und cons_first benutzen   
@@ -139,12 +163,36 @@ BEGIN
 	ENDIF
     MEASURE s`length
 
+    get_i(seq: bit_seq, i: nat): RECURSIVE bool =
+    	IF seq`length = 1 THEN
+	    seq(0) ELSE
+	    get_i(tail(seq), i-1) ENDIF
+    MEASURE seq`length
+
+    get_i_tail: FORMULA
+        FORALL(seq: min_seq(3), i: nat):
+            get_i(seq, i) = get_i(tail(seq), i-1)
+
+    len(seq: min_seq(1)): RECURSIVE nat =
+        IF seq`length <= 1 THEN
+	1 ELSE
+	1 + len(tail(seq)) ENDIF
+    MEASURE seq`length
+
+    induct_test_1: FORMULA
+        FORALL(seq: min_seq(1)):
+	    seq`length = len(seq)
+
+    induct_test_2: FORMULA
+        FORALL(seq: bit_seq, i: below(seq`length)):
+	    seq(i) = get_i(seq, i)
+ 
     % wenn ich stuff mit rep_count > 0 und korrekten parametern aufrufe,
     % dann ist das ergebnis immer consable?
     stuff_consable: FORMULA
         FORALL(s: bit_seq, rep_count: between(1, s`length-1), rep_bit: bool):
-	    ((FORALL(i: between(1, rep_count)): s(0) IFF s(i)) AND % rep_count ist #gleicher Bits am Anfang von s 
-	    s(0) IFF rep_bit) IMPLIES		     	       	   % rep_bit das wiederholende Bit ist
+	    ((FORALL(i: between(0, rep_count-1)): s(i) IFF s(i+1)) AND % rep_count ist #gleicher Bits am Anfang von s 
+	    (s(0) IFF rep_bit)) IMPLIES		     	       	   % rep_bit das wiederholende Bit ist
 	        consable?(stuff(s, rep_count, rep_bit))
 	    
 
