@@ -5,7 +5,7 @@ BEGIN
     % 100001 -> Okay da 4 wiederholende Nullen
     % 100000 -> Nicht Okay, wird von stuff-Funktion umgewandelt zu:
     % 1000010
-    MAX_REP: posint
+    MAX_REP: above(1)
 
     maximal(m: nat): TYPE = {n: nat | n <= m}
     between(s: nat, e: nat): TYPE = {n: nat | s <= n AND n <= e}
@@ -92,7 +92,7 @@ BEGIN
 	        IMPLIES (x = y)
 
     % PROBLEM: lässt sich nicht beweisen
-    tail_cons: FORMULA
+    tail_cons: AXIOM
         FORALL(head: bool, seq: bit_seq):
 	    seq = tail(cons(head, seq))
 
@@ -146,11 +146,20 @@ BEGIN
         FORALL(s: stuffed_consable, b: bool):
 	    stuffed?(cons(b, s))
 
+    cons_consable: FORMULA
+        FORALL(head: bit, tail: (consable?)):
+	    consable?(cons(NOT head, cons(head, tail)))
+
+    %cons_consable_2: FORMULA
+    %    FORALL(head: bit, tail: (consable?)):
+    %	    (NOT FORALL(i: between(0, MAX_REP-2): head IFF tail(MAX_REP))  IMPLIES
+    %	        consable?(cons(bit, tail))
+
     % Beweis über cons
     % wenn bei stuff rep_count > 0 hat Ergebnis nicht mehr als MAX_REP - rep_count gleiche Bits am Anfange
     % -> also kann man s(0) anhägen
     % Fall1: da s(0) negiert wird -> cons_xor
-    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE min_stuffed(s`length) =
+    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE min_seq(s`length) =
         IF s`length = 0 THEN
 	    empty_seq
 	ELSE
@@ -163,67 +172,83 @@ BEGIN
 	ENDIF
     MEASURE s`length
 
-    get_i(seq: bit_seq, i: nat): RECURSIVE bool =
-    	IF seq`length = 1 THEN
-	    seq(0) ELSE
-	    get_i(tail(seq), i-1) ENDIF
-    MEASURE seq`length
+    %get_i(seq: bit_seq, i: nat): RECURSIVE bool =
+    %	IF seq`length = 1 THEN
+    %	    seq(0) ELSE
+    %	    get_i(tail(seq), i-1) ENDIF
+    %MEASURE seq`length
 
-    get_i_tail: FORMULA
-        FORALL(seq: min_seq(3), i: nat):
-            get_i(seq, i) = get_i(tail(seq), i-1)
+    %get_i_tail: FORMULA
+    %    FORALL(seq: min_seq(3), i: nat):
+    %        get_i(seq, i) = get_i(tail(seq), i-1)
 
     len(seq: min_seq(1)): RECURSIVE nat =
         IF seq`length <= 1 THEN
-	1 ELSE
-	1 + len(tail(seq)) ENDIF
+    	1 ELSE
+    	1 + len(tail(seq)) ENDIF
     MEASURE seq`length
 
     induct_test_1: FORMULA
         FORALL(seq: min_seq(1)):
-	    seq`length = len(seq)
+    	    seq`length = len(seq)
+
+    filter(seq: bit_seq): RECURSIVE bit_seq = 
+        IF seq`length = 0 THEN empty_seq
+	ELSE
+	    IF seq(0) THEN
+	    cons(true, filter(tail(seq))) ELSE
+	    filter(tail(seq)) ENDIF
+	ENDIF
+    MEASURE seq`length
 
     induct_test_2: FORMULA
-        FORALL(seq: bit_seq, i: below(seq`length)):
-	    seq(i) = get_i(seq, i)
+        FORALL(seq: bit_seq):
+	    LET res = filter(seq) IN
+	    FORALL(i: below(res`length)):
+	        res(i)
+
+    %induct_test_2: FORMULA
+    %    FORALL(seq: bit_seq, i: below(seq`length)):
+    %	    seq(i) = get_i(seq, i)
  
     % wenn ich stuff mit rep_count > 0 und korrekten parametern aufrufe,
     % dann ist das ergebnis immer consable?
     stuff_consable: FORMULA
-        FORALL(s: bit_seq, rep_count: between(1, s`length-1), rep_bit: bool):
-	    ((FORALL(i: between(0, rep_count-1)): s(i) IFF s(i+1)) AND % rep_count ist #gleicher Bits am Anfang von s 
-	    (s(0) IFF rep_bit)) IMPLIES		     	       	   % rep_bit das wiederholende Bit ist
-	        consable?(stuff(s, rep_count, rep_bit))
+        FORALL(s: bit_seq, rep_count: between(1, s`length-1)):
+	    (FORALL(i: between(0, rep_count-1)): s(i) IFF s(i+1) % rep_count ist #gleicher Bits am Anfang von s 
+	    	IMPLIES consable?(stuff(tail(s), rep_count, s(0))))
+
+    % Wenn stuff mit richtigen Startparameter aufgerufen wird, ist das Ergebnis
+    % stuffed
+    stuff_works: FORMULA
+        FORALL(s: bit_seq):
+	    stuffed?(stuff(s, 0, False))
 	    
 
-%    unstuff(s: (stuffed?), rep_count: nat, rep_bit: bool): RECURSIVE bit_seq =
-%        IF s`length = 0 THEN
-%	    empty_seq
-%	ELSE
-%	    IF rep_count >= MAX_REP-1 AND s(0) IFF rep_bit THEN
-%	        cons(s(0), unstuff(tail(tail(s)), 0, False))
-%	    ELSE
-%	        LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
-%		    cons(s(0), unstuff(tail(s), new_count, s(0)))
-%    	    ENDIF
-%	ENDIF
-%    MEASURE s`length
+    unstuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE bit_seq =
+        IF s`length = 0 THEN
+	    empty_seq
+	ELSE
+	    IF rep_count >= MAX_REP-1 AND s(0) IFF rep_bit THEN
+	        cons(s(0), unstuff(tail(tail(s)), 0, False))
+	    ELSE
+	        LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
+		    cons(s(0), unstuff(tail(s), new_count, s(0)))
+    	    ENDIF
+	ENDIF
+    MEASURE s`length
 
-%    correct: FORMULA
+%    stuff_result: FORMULA
 %        FORALL(s: bit_seq):
-%	    s = unstuff(stuff(s, 0, False)`seq, 0, False)
+%	    stuff(s, 0, False) = IF (stuffed?(s)) THEN
+%	        s ELSE 
 
-    % Beweisidee für die tcc
-    % Bei Fall 1 und Fall 2 entsteht durch das zusammenhängen eine stufffed bit_seq, denn
-    % wenn wir s_0 mit stuff(s_1..n, 1, s(0)) zusammenhängen
-    % beginnt stuff(s_1..n, 1, s(0)) mit max. max_rep-1 gleichen bits
-    % Also entsteht durch das Zusammenhängen maximal max_rep Wiederholungen -> stuffed? ist erfüllt
-    %n: VAR below(MAX_REP)
-    %b: VAR bool
-    %stuff_starts: FORMULA
-    %    FORALL(s: min_seq(MAX_REP + 1)): %Bitsequenz bei der Stuffing nötig sein könnte   
-    %	    EXISTS(i: below(MAX_REP+1-n)):	      %0..3+1-0 -> muss mindestens einer verschieden zu b sein
-    % 	        NOT b IFF stuff(s, n, b)(i)
-	    
+    stuffed_correct: FORMULA 
+        FORALL(s: (stuffed?)):
+	    s = unstuff(stuff(s, 0, False), 0, False)
+
+    correct: FORMULA
+        FORALL(s: bit_seq):
+	    s = unstuff(stuff(s, 0, False), 0, False)
     
 END bitstuffing
