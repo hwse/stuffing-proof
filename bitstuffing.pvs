@@ -14,44 +14,61 @@ BEGIN
     % the packet should be ignored."
     %
     % Also kurz:
-    % * nach 6 aufeinanderfolgenden Einsen wird eine 0 eingefügt --> stuffing
-    % * unstuffing -> 0 nach 6 aufeinanderfolgenden Einsen erkennen und entfernen
     %
+    % stuff-Funktion:
+    % * Eingabe ist Bitfolge
+    % * nach 6 aufeinanderfolgenden Einsen wird eine 0 eingefügt
+    % * Ausgabe: Bitfolge mit maximal 6 aufeinanderfolgenden Einsen (stuffed-Eigenschaft)
+    % 
+    % unstuff-Funktion:
+    % * Eingabe: Bitfolge, welche stuffed-Eigenschaft erfüllt
+    % * 0 wird nach 6 aufeinanderfolgenden Einsen erkannt und entfernen
+    % * Ausgabe: Bitfolge
+    % 
     % Beispiel:
     % unstuffed: 0110111111101
     % stuffed:   01101111110101
     %
-    % Im Beweis wird nicht 6, sondern beliebige Zahl > 0 verwendet
+    % zu beweisen ist:
+    % * Ergebnis der stuff-Funktion erfüllt stuffed-Eigenschaft
+    % * Information bleibt beim stuffing erhalten, also: unstuff(stuff(s)) = s, für alle s
+    % 
+    % Im Beweis wird nicht 6, sondern beliebige Zahl > 0 als maximal Anzahl Einsen verwendet
+
+    % Nach MAX_ONES aufeinanderfolgenden Einsen wird 0 eingefügt
     MAX_ONES: above(0)
 
+    % Hilfstypen
     maximal(m: nat): TYPE = {n: nat | n <= m}
     between(s: nat, e: nat): TYPE = {n: nat | s <= n AND n <= e}
 
-    % Sequenz mit beliebiger Länge
+    % Bit-Sequenz mit beliebiger Länge
     bit_seq: TYPE = finite_sequence[bool]    
     % Sequenz mit genau n Bits
     fix_seq(n: nat): TYPE = {s: bit_seq | s`length = n}
     % Sequenzen mit mehr als oder gleich n Bits
     min_seq(n: nat): TYPE = {s: bit_seq | s`length >= n}
 
-    % Bedingung für Ergebnis der "stuff" Funktions
-    % index aus i, so dass von alle j von i + 1 bis i + max_rep - 1
-    % s(j) = s(i)
+    % Bedingung für Ergebnis der "stuff" Funktions:
+    % Maximal MAX_ONES Einsen in Bitfolge
+    % Umsetzung: Vergleich Indizes 0-1,1-2,2-3,3-4,...
     stuffed?(s: bit_seq): bool =
-    	s`length <= MAX_REP OR
-	(s`length > MAX_REP AND
-	FORALL(start: below(s`length - MAX_REP)):		% Für alle Subsequenzen der Länge MAX_REP + 1
-	    NOT (FORALL(i: between(start, start+MAX_REP-1)): 	% Nicht alle Bits sind gleich
-	        s(i) IFF s(i+1)))
+    	s`length <= MAX_ONES OR	
+	(s`length > MAX_ONES AND
+	FORALL(start: below(s`length - MAX_ONES)):
+	    NOT (FORALL(i: between(start, start+MAX_ONES-1)):
+	        s(i) AND s(i+1)))
 
+    % stuffed Sequenz mit fixer Länge
     fix_stuffed(l: nat): TYPE = {s: fix_seq(l) | stuffed?(s)}
+    % stuffed Sequenz mit Länge >= l
     min_stuffed(l: nat): TYPE = {s: min_seq(l) | stuffed?(s)}
 
-    % Wrapper um genau ein Element
+    % Sequenz mit genau einen bit
     single(el: bool): fix_seq(1) =
         (# length := 1, seq := LAMBDA(i: below(1)): el #)
 
-    % Alle Bits außer das erste
+    % Subsequenz mit allen Bits außer das erste
     tail(s: min_seq(1)): fix_seq(s`length-1)  =
         s ^^ (1, s`length)
 
@@ -115,20 +132,20 @@ BEGIN
 
     % ==== FORMULAS ====
     % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
-    % 	   * tail`length < MAX_REP ist
+    % 	   * tail`length < MAX_ONES ist
     % Beweis über Länge: tail`length + 1 <= MAX_REP 
     cons_smaller: FORMULA
         FORALL(head: bool, tail: (stuffed?)):
-	    (tail`length < MAX_REP) IMPLIES
+	    (tail`length < MAX_ONES) IMPLIES
 	        stuffed?(cons(head,tail))
 
-    % Wenn ich Seqeunzen mit cons verbinde und Ersten MAX_REP-1 Elemente von
+    % Wenn ich Seqeunzen mit cons verbinde und Ersten MAX_ONES-1 Elemente von
     % head verschieden sind ist wieder (stuffed?) erfüllt
     % Beweis mit (case start=0) und dann mit cons_get und cons_first benutzen   
     cons_stuffed: FORMULA
-        FORALL(head: bool, tail: min_stuffed(MAX_REP+1)):
+        FORALL(head: bool, tail: min_stuffed(MAX_ONES+1)):
             LET c = cons(head, tail) IN
-	    (NOT (FORALL(i: between(0, MAX_REP-2)): c(i) IFF c(i+1))) IMPLIES
+	    (NOT (FORALL(i: between(0, MAX_ONES-2)): c(i) IFF c(i+1))) IMPLIES
 	         stuffed?(c)
 		
     % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
@@ -136,7 +153,7 @@ BEGIN
     % Beweis: Head ist unterschiedlich zu tail(0) -> also muss Eigenschaft erfüllt sein
     % Beweis über cons_stuffed 
     cons_xor: FORMULA
-        FORALL(head: bool, tail: min_stuffed(MAX_REP+1)):
+        FORALL(head: bool, tail: min_stuffed(MAX_ONES+1)):
 	    (head XOR tail(0)) IMPLIES
 	        stuffed?(cons(head,tail))
 
@@ -148,9 +165,9 @@ BEGIN
     % stuffed bit_seq an die ich immer vorne ein beliebiges bit anhängen kann
     % und sie dann immer noch stuffed ist
     consable?(s: bit_seq): bool =
-        s`length < MAX_REP OR
-	(s`length >= MAX_REP AND
-	NOT FORALL(i: between(0, MAX_REP-2)): % Die ersten MAX_REP-1 Bits dürfen nicht gleich sein
+        s`length < MAX_ONES OR
+	(s`length >= MAX_ONES AND
+	NOT FORALL(i: between(0, MAX_ONES-2)): % Die ersten MAX_REP-1 Bits dürfen nicht gleich sein
 	    s(i) IFF s(i+1))
 
     % Kombination von stuffed? und consable?
@@ -172,19 +189,19 @@ BEGIN
     %	    (NOT FORALL(i: between(0, MAX_REP-2): head IFF tail(MAX_REP))  IMPLIES
     %	        consable?(cons(bit, tail))
 
-    % Beweis über cons
-    % wenn bei stuff rep_count > 0 hat Ergebnis nicht mehr als MAX_REP - rep_count gleiche Bits am Anfange
-    % -> also kann man s(0) anhägen
-    % Fall1: da s(0) negiert wird -> cons_xor
-    stuff(s: bit_seq, one_count: nat): RECURSIVE min_seq(s`length) =
+    % Füge eine 0 nach MAX_REP aufeinanderfolgenden Einsen ein. Ansonsten werden
+    % keine Änderungen an der Eingabe gemacht.
+    % s: Bitsequenz
+    % one_count: Anzahl aufeinanderfolgenden Einsen aus vorherigen rekursiven Aufrufen
+    stuff(s: bit_seq, one_count: nat): RECURSIVE min_stuffed(s`length) =
         IF s`length = 0 THEN
 	    empty_seq
 	ELSE
-	    IF one_count >= MAX_REP THEN
+	    IF one_count >= MAX_ONES-1 AND s(0) THEN
 	        cons(s(0), cons(false, stuff(tail(s), 0))) % Fall 1
 	    ELSE
-		LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
-	            cons(s(0), stuff(tail(s), new_count, s(0))) % Fall 2
+		LET new_count = IF s(0) THEN one_count+1 ELSE 0 ENDIF IN
+	            cons(s(0), stuff(tail(s), new_count))
 	    ENDIF
 	ENDIF
     MEASURE s`length
@@ -233,24 +250,26 @@ BEGIN
     stuff_consable: FORMULA
         FORALL(s: bit_seq, rep_count: between(1, s`length-1)):
 	    (FORALL(i: between(0, rep_count-1)): s(i) IFF s(i+1) % rep_count ist #gleicher Bits am Anfang von s 
-	    	IMPLIES consable?(stuff(tail(s), rep_count, s(0))))
+	    	IMPLIES consable?(stuff(tail(s), rep_count)))
 
     % Wenn stuff mit richtigen Startparameter aufgerufen wird, ist das Ergebnis
     % stuffed
     stuff_works: FORMULA
         FORALL(s: bit_seq):
-	    stuffed?(stuff(s, 0, False))
+	    stuffed?(stuff(s, 0))
 	    
-
-    unstuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE bit_seq =
+    % Entferne Null nach MAX_REP aufeinanderfolgenden Einsen
+    % s: Bit-Seqenz, welche die stuffed Eigenschafterfüllt
+    % one_count: Anzahl der bisherigen aufeinanderfolgenden Einsen aus vorherigen rekursiven Aufrufen
+    unstuff(s: (stuffed?), one_count: nat): RECURSIVE bit_seq =
         IF s`length = 0 THEN
 	    empty_seq
 	ELSE
-	    IF rep_count >= MAX_REP-1 AND s(0) IFF rep_bit THEN
-	        cons(s(0), unstuff(tail(tail(s)), 0, False))
+	    IF one_count >= MAX_ONES-1 AND s(0) THEN
+	        cons(s(0), unstuff(tail(tail(s)), 0))
 	    ELSE
-	        LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
-		    cons(s(0), unstuff(tail(s), new_count, s(0)))
+	        LET new_count = IF s(0) THEN one_count+1 ELSE 0 ENDIF IN
+		    cons(s(0), unstuff(tail(s), new_count))
     	    ENDIF
 	ENDIF
     MEASURE s`length
@@ -262,10 +281,10 @@ BEGIN
 
     stuffed_correct: FORMULA 
         FORALL(s: (stuffed?)):
-	    s = unstuff(stuff(s, 0, False), 0, False)
+	    s = unstuff(stuff(s, 0), 0)
 
     correct: FORMULA
         FORALL(s: bit_seq):
-	    s = unstuff(stuff(s, 0, False), 0, False)
+	    s = unstuff(stuff(s, 0), 0)
     
 END bitstuffing
