@@ -1,11 +1,28 @@
 bitstuffing: THEORY
 BEGIN
-    % maximale Wiederholungen von Bits in einer "stuffed" Bitsequenz
-    % Bsp: max_rep = 4
-    % 100001 -> Okay da 4 wiederholende Nullen
-    % 100000 -> Nicht Okay, wird von stuff-Funktion umgewandelt zu:
-    % 1000010
-    MAX_REP: above(1)
+    % Aus USB-Standard Revision 1.1 September 23, 1998 (esd.cs.ucr.edu/webres/usb11.pdf)
+    %
+    % 7.1.9: Bitstuffing
+    %
+    % "A zero is inserted after every six consecutive ones in the data
+    % stream before the data is NRZI encoded, to force a transition in
+    % the NRZI data stream."
+    %
+    % "The receiver must decode the NRZI data, recognize the stuffed bits,
+    % and discard them. If the receiver sees seven consecutive ones
+    % anywhere in the packet, then a bit stuffing error has occurred and
+    % the packet should be ignored."
+    %
+    % Also kurz:
+    % * nach 6 aufeinanderfolgenden Einsen wird eine 0 eingefügt --> stuffing
+    % * unstuffing -> 0 nach 6 aufeinanderfolgenden Einsen erkennen und entfernen
+    %
+    % Beispiel:
+    % unstuffed: 0110111111101
+    % stuffed:   01101111110101
+    %
+    % Im Beweis wird nicht 6, sondern beliebige Zahl > 0 verwendet
+    MAX_ONES: above(0)
 
     maximal(m: nat): TYPE = {n: nat | n <= m}
     between(s: nat, e: nat): TYPE = {n: nat | s <= n AND n <= e}
@@ -159,12 +176,12 @@ BEGIN
     % wenn bei stuff rep_count > 0 hat Ergebnis nicht mehr als MAX_REP - rep_count gleiche Bits am Anfange
     % -> also kann man s(0) anhägen
     % Fall1: da s(0) negiert wird -> cons_xor
-    stuff(s: bit_seq, rep_count: nat, rep_bit: bool): RECURSIVE min_seq(s`length) =
+    stuff(s: bit_seq, one_count: nat): RECURSIVE min_seq(s`length) =
         IF s`length = 0 THEN
 	    empty_seq
 	ELSE
-	    IF rep_count >= MAX_REP AND s(0) IFF rep_bit THEN
-	        cons(NOT s(0), cons(s(0), stuff(tail(s), 1, s(0)))) % Fall 1
+	    IF one_count >= MAX_REP THEN
+	        cons(s(0), cons(false, stuff(tail(s), 0))) % Fall 1
 	    ELSE
 		LET new_count = IF s(0) IFF rep_bit THEN rep_count+1 ELSE 1 ENDIF IN
 	            cons(s(0), stuff(tail(s), new_count, s(0))) % Fall 2
