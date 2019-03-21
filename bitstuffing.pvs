@@ -76,7 +76,7 @@ BEGIN
     cons(head: bool, tail: bit_seq): fix_seq(tail`length + 1) =
         single(head) o tail
 
-    % ==== CONS HELPER ===
+    % ==== Hilfsformeln für cons ===
 
     % PVS über Sequenzen "schlaumachen"
     % Beweis über expanden der ganzen Funktionen
@@ -106,7 +106,7 @@ BEGIN
 	        IF i = 0 THEN head ELSE
 		tail(i-1) ENDIF
 
-    % ==== TAIL HELPER ====
+    % ==== Hilfsformeln für tail ====
 
     tail_length: FORMULA
         FORALL(seq: min_seq(1)):
@@ -131,6 +131,7 @@ BEGIN
     %	    seq = tail(cons(head, seq))
 
     % ==== Hilfsformeln ====
+    
     % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
     % 	   * tail`length < MAX_ONES ist
     % Beweis über Länge: tail`length + 1 <= MAX_REP 
@@ -155,6 +156,14 @@ BEGIN
     cons_xor: FORMULA
         FORALL(head: bool, tail: min_stuffed(MAX_ONES+1)):
 	    (head XOR tail(0)) IMPLIES
+	        stuffed?(cons(head,tail))
+
+    % Hilfsformel für Beweis mit Maßinduktion
+    % 0 an stuffed sequenz angehangen ist immer noch eine stuffed sequenz
+    % Beweis: Fälle aufsplitten und durch Einsetzen der cons-Hilfsformeln lösen
+    cons_zero: FORMULA
+        FORALL(head: bool, tail: (stuffed?)):
+	    (NOT head) IMPLIES
 	        stuffed?(cons(head,tail))
 
     % Tail von einer "stuffed" Sequenz ist immer auch Stuffed
