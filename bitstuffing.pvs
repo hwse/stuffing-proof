@@ -49,6 +49,23 @@ BEGIN
     % Sequenzen mit mehr als oder gleich n Bits
     min_seq(n: nat): TYPE = {s: bit_seq | s`length >= n}
 
+    % === Axiom fü Bitsequenzen ===
+    % Verwendungen dieser Axiome ist nötig, da PVS striktere Vorgaben zur Gleichheit verwendet.
+    
+    % Alle Seqeuenzen der Länge 0 sind im Kontext des Bitstuffing gleich
+    zero_eq: AXIOM
+        FORALL(s1: bit_seq, s2: bit_seq):
+	    s1`length = 0 AND s2`length = 0 IMPLIES
+	        s1 = s2
+
+    % Sequenzen mit gleicher Länge und Werten sind im Kontext des Bitstuffung gleich
+    seq_eq: AXIOM
+        FORALL(s1: bit_seq, s2: bit_seq):
+	    (s1`length = s2`length AND
+	    FORALL (i: below(s1`length)):
+	        s1`seq(i) IFF s2`seq(i)) IMPLIES
+		    s1 = s2
+
     % Bedingung für Ergebnis der "stuff" Funktions:
     % Maximal MAX_ONES Einsen in Bitfolge
     % Umsetzung: Vergleich Indizes 0-1,1-2,2-3,3-4,...
@@ -116,6 +133,11 @@ BEGIN
         FORALL(seq: min_seq(2), i: between(1, seq`length-2)):
 	    seq(i) = tail(seq)(i-1)
 
+    % Beweis über Axiome
+    tail_cons: FORMULA
+        FORALL(head: bool, tail: bit_seq):
+	    tail(cons(head, tail)) = tail
+
     %only_zero: AXIOM
     %    FORALL(x: bit_seq):
     %	    (x`length = 0) IMPLIES x = empty_seq
@@ -166,10 +188,17 @@ BEGIN
 	    (NOT head) IMPLIES
 	        stuffed?(cons(head,tail))
 
+    % Alternative Formulierung von cons_zero
+    % lässt sich über cons_zero beweisen
+    cons_zero_alt: FORMULA
+        FORALL(head: bool, tail: bit_seq):
+	    (NOT head) AND stuffed?(tail) IMPLIES
+	        stuffed?(cons(head, tail))
+
     % Tail von einer "stuffed" Sequenz ist immer auch Stuffed
     tail_stuffed: FORMULA
-        FORALL(s: min_stuffed(1)):
-	    stuffed?(tail(s))
+        FORALL(s: min_seq(1)):
+	    stuffed?(s) IMPLIES stuffed?(tail(s))
 
     % stuffed bit_seq an die ich immer vorne ein beliebiges bit anhängen kann
     % und sie dann immer noch stuffed ist

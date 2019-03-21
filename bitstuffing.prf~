@@ -1,4 +1,26 @@
 (bitstuffing
+ (seq_eq_TCC1 0
+  (seq_eq_TCC1-1 nil 3762161794 ("" (subtype-tcc) nil nil)
+   ((below type-eq-decl nil naturalnumbers nil)
+    (bit_seq type-eq-decl nil bitstuffing nil)
+    (below type-eq-decl nil nat_types nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (>= const-decl "bool" reals nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (< const-decl "bool" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number nonempty-type-decl nil numbers nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (boolean nonempty-type-decl nil booleans nil))
+   nil))
  (stuffed?_TCC1 0
   (stuffed?_TCC1-1 nil 3757503693 ("" (subtype-tcc) nil nil)
    ((int_minus_int_is_int application-judgement "int" integers nil))
@@ -312,6 +334,75 @@
     (posint_plus_nnint_is_posint application-judgement "posint"
      integers nil))
    shostak))
+ (tail_cons_TCC1 0
+  (tail_cons_TCC1-1 nil 3762159616 ("" (subtype-tcc) nil nil)
+   ((real_ge_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
+    (posint_plus_nnint_is_posint application-judgement "posint"
+     integers nil)
+    (single const-decl "fix_seq(1)" bitstuffing nil)
+    (O const-decl "finseq" finite_sequences nil)
+    (cons const-decl "fix_seq(tail`length + 1)" bitstuffing nil)
+    (int_minus_int_is_int application-judgement "int" integers nil))
+   nil))
+ (tail_cons 0
+  (tail_cons-1 nil 3762159617
+   ("" (skosimp)
+    (("" (grind)
+      (("1" (lemma "zero_eq")
+        (("1"
+          (inst -1
+           "(# length := 0, seq := (LAMBDA (x: below[0]): epsilon! (t: bool): TRUE) #)"
+           "tail!1")
+          (("1" (assert) nil nil)) nil))
+        nil)
+       ("2" (lemma "seq_eq")
+        (("2"
+          (inst -1
+           "(# length := tail!1`length, seq := LAMBDA (x: below[tail!1`length]): tail!1`seq(x) #)"
+           "tail!1")
+          (("2" (assert) nil nil)) nil))
+        nil))
+      nil))
+    nil)
+   ((single const-decl "fix_seq(1)" bitstuffing nil)
+    (O const-decl "finseq" finite_sequences nil)
+    (cons const-decl "fix_seq(tail`length + 1)" bitstuffing nil)
+    (empty_seq const-decl "finseq" finite_sequences nil)
+    (min const-decl "{p: real | p <= m AND p <= n}" real_defs nil)
+    (^^ const-decl "finseq" finite_sequences nil)
+    (tail const-decl "fix_seq(s`length - 1)" bitstuffing nil)
+    (posint_plus_nnint_is_posint application-judgement "posint"
+     integers nil)
+    (int_minus_int_is_int application-judgement "int" integers nil)
+    (int_min application-judgement "{k: int | k <= i AND k <= j}"
+     real_defs nil)
+    (real_ge_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (below type-eq-decl nil nat_types nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (bit_seq type-eq-decl nil bitstuffing nil)
+    (number nonempty-type-decl nil numbers nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (>= const-decl "bool" reals nil)
+    (FALSE const-decl "bool" booleans nil)
+    (pred type-eq-decl nil defined_types nil)
+    (epsilon const-decl "T" epsilons nil)
+    (TRUE const-decl "bool" booleans nil)
+    (zero_eq formula-decl nil bitstuffing nil)
+    (< const-decl "bool" reals nil)
+    (seq_eq formula-decl nil bitstuffing nil))
+   shostak))
  (cons_smaller 0
   (cons_smaller-1 nil 3757588142
    ("" (skolem!)
@@ -579,7 +670,7 @@
                         nil)
                        ("2" (assert) nil nil))
                       nil)
-                     ("2" (inst -3 "start!1+1")
+                     ("2" (inst -3 "start!1-1")
                       (("1" (skosimp)
                         (("1" (inst -1 "i!1+1")
                           (("1" (lemma "cons_get")
@@ -595,44 +686,22 @@
                                        -1
                                        "head!1"
                                        "tail!1"
-                                       "i!1 + 1")
+                                       "i!1+1")
                                       (("1"
                                         (replace -1 -2 :dir rl)
                                         (("1" (assert) nil nil))
                                         nil)
-                                       ("2"
-                                        (assert)
-                                        (("2"
-                                          (typepred "i!1")
-                                          (("2"
-                                            (lemma "cons_length")
-                                            (("2"
-                                              (inst
-                                               -1
-                                               "FALSE"
-                                               "tail!1")
-                                              (("2"
-                                                (typepred "tail!1")
-                                                (("2"
-                                                  (postpone)
-                                                  nil
-                                                  nil))
-                                                nil))
-                                              nil))
-                                            nil))
-                                          nil))
-                                        nil))
+                                       ("2" (assert) nil nil))
                                       nil))
                                     nil))
                                   nil))
                                 nil)
-                               ("2" (postpone) nil nil))
+                               ("2" (assert) nil nil))
                               nil))
-                            nil)
-                           ("2" (postpone) nil nil))
+                            nil))
                           nil))
                         nil)
-                       ("2" (postpone) nil nil))
+                       ("2" (assert) nil nil))
                       nil))
                     nil))
                   nil))
@@ -643,7 +712,170 @@
         nil))
       nil))
     nil)
-   nil shostak))
+   ((stuffed? const-decl "bool" bitstuffing nil)
+    (bit_seq type-eq-decl nil bitstuffing nil)
+    (below type-eq-decl nil nat_types nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (NOT const-decl "[bool -> bool]" booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (real_ge_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
+    (odd_minus_odd_is_even application-judgement "even_int" integers
+     nil)
+    (cons_get formula-decl nil bitstuffing nil)
+    (nnint_plus_posint_is_posint application-judgement "posint"
+     integers nil)
+    (real_gt_is_strict_total_order name-judgement
+     "(strict_total_order?[real])" real_props nil)
+    (real_le_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
+    (cons_length formula-decl nil bitstuffing nil)
+    (int_plus_int_is_int application-judgement "int" integers nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (MAX_ONES const-decl "above(0)" bitstuffing nil)
+    (above nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (cons const-decl "fix_seq(tail`length + 1)" bitstuffing nil)
+    (fix_seq type-eq-decl nil bitstuffing nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (< const-decl "bool" reals nil) (>= const-decl "bool" reals nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (<= const-decl "bool" reals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number nonempty-type-decl nil numbers nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil)
+    (between type-eq-decl nil bitstuffing nil)
+    (cons_first formula-decl nil bitstuffing nil)
+    (minus_odd_is_odd application-judgement "odd_int" integers nil)
+    (real_lt_is_strict_total_order name-judgement
+     "(strict_total_order?[real])" real_props nil)
+    (posint_plus_nnint_is_posint application-judgement "posint"
+     integers nil)
+    (int_minus_int_is_int application-judgement "int" integers nil))
+   shostak))
+ (cons_zero_alt 0
+  (cons_zero_alt-1 nil 3762163750
+   ("" (skosimp)
+    (("" (lemma "cons_zero")
+      (("" (inst -1 "head!1" "tail!1") (("" (assert) nil nil)) nil))
+      nil))
+    nil)
+   ((cons_zero formula-decl nil bitstuffing nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (below type-eq-decl nil nat_types nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (bit_seq type-eq-decl nil bitstuffing nil)
+    (stuffed? const-decl "bool" bitstuffing nil))
+   shostak))
+ (tail_stuffed 0
+  (tail_stuffed-1 nil 3762164427
+   ("" (skosimp)
+    (("" (expand "stuffed?")
+      (("" (flatten)
+        (("" (split)
+          (("1" (split) (("1" (assert) nil nil) ("2" (assert) nil nil))
+            nil)
+           ("2" (assert)
+            (("2" (skosimp)
+              (("2" (inst -1 "start!1+1")
+                (("2" (skosimp)
+                  (("2" (lemma "tail_get")
+                    (("2" (inst -2 "i!1-1")
+                      (("2" (inst -1 "s!1" "i!1")
+                        (("2" (replace -1 -2 :dir rl)
+                          (("2" (lemma "tail_get")
+                            (("2" (inst -1 "s!1" "i!1+1")
+                              (("1"
+                                (replace -1 -3 :dir rl)
+                                (("1" (assert) nil nil))
+                                nil)
+                               ("2"
+                                (assert)
+                                (("2" (grind) nil nil))
+                                nil))
+                              nil))
+                            nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
+    nil)
+   ((int_minus_int_is_int application-judgement "int" integers nil)
+    (posint_plus_nnint_is_posint application-judgement "posint"
+     integers nil)
+    (stuffed? const-decl "bool" bitstuffing nil)
+    (real_le_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
+    (real_gt_is_strict_total_order name-judgement
+     "(strict_total_order?[real])" real_props nil)
+    (int_plus_int_is_int application-judgement "int" integers nil)
+    (real_ge_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
+    (AND const-decl "[bool, bool -> bool]" booleans nil)
+    (<= const-decl "bool" reals nil)
+    (between type-eq-decl nil bitstuffing nil)
+    (odd_plus_odd_is_even application-judgement "even_int" integers
+     nil)
+    nil nil nil
+    (int_min application-judgement "{k: int | k <= i AND k <= j}"
+     real_defs nil)
+    (^^ const-decl "finseq" finite_sequences nil)
+    (min const-decl "{p: real | p <= m AND p <= n}" real_defs nil)
+    (finseq_appl const-decl "[below[length(fs)] -> T]" finite_sequences
+     nil)
+    (tail_get formula-decl nil bitstuffing nil)
+    (tail const-decl "fix_seq(s`length - 1)" bitstuffing nil)
+    (fix_seq type-eq-decl nil bitstuffing nil)
+    (= const-decl "[T, T -> boolean]" equalities nil)
+    (+ const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (below type-eq-decl nil naturalnumbers nil)
+    (MAX_ONES const-decl "above(0)" bitstuffing nil)
+    (above nonempty-type-eq-decl nil integers nil)
+    (> const-decl "bool" reals nil)
+    (min_seq type-eq-decl nil bitstuffing nil)
+    (bit_seq type-eq-decl nil bitstuffing nil)
+    (below type-eq-decl nil nat_types nil)
+    (- const-decl "[numfield, numfield -> numfield]" number_fields nil)
+    (numfield nonempty-type-eq-decl nil number_fields nil)
+    (< const-decl "bool" reals nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (>= const-decl "bool" reals nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (number nonempty-type-decl nil numbers nil)
+    (nnint_plus_posint_is_posint application-judgement "posint"
+     integers nil)
+    (real_lt_is_strict_total_order name-judgement
+     "(strict_total_order?[real])" real_props nil))
+   shostak))
  (stuff_TCC1 0
   (stuff_TCC1-1 nil 3757503693 ("" (subtype-tcc) nil nil)
    ((real_ge_is_total_order name-judgement "(total_order?[real])"
@@ -841,14 +1073,41 @@
         (("1" (inst -1 "false" "x!1")
           (("1" (replace -1 -2)
             (("1" (assert)
-              (("1" (expand "stuff" -2)
-                (("1" (assert)
-                  (("1" (lemma "tail_cons")
+              (("1" (hide -1)
+                (("1" (expand "stuff" -1)
+                  (("1" (lemma "cons_first")
                     (("1" (inst -1 "FALSE" "x!1")
-                      (("1" (replace -1 -3 :dir rl)
-                        (("1" (smash)
-                          (("1" (postpone) nil nil)
-                           ("2" (postpone) nil nil))
+                      (("1" (replace -1 -2 :dir rl)
+                        (("1" (lemma "tail_cons")
+                          (("1" (inst -1 "FALSE" "x!1")
+                            (("1" (replace -1 -3)
+                              (("1"
+                                (lemma "tail_stuffed")
+                                (("1"
+                                  (inst
+                                   -1
+                                   "cons(FALSE, stuff(x!1, 0))")
+                                  (("1"
+                                    (flatten)
+                                    (("1"
+                                      (lemma "tail_cons")
+                                      (("1"
+                                        (inst
+                                         -1
+                                         "FALSE"
+                                         "stuff(x!1, 0)")
+                                        (("1"
+                                          (replace -1 -2)
+                                          (("1" (assert) nil nil))
+                                          nil))
+                                        nil))
+                                      nil))
+                                    nil)
+                                   ("2" (assert) nil nil))
+                                  nil))
+                                nil))
+                              nil))
+                            nil))
                           nil))
                         nil))
                       nil))
@@ -860,7 +1119,29 @@
           nil))
         nil))
       nil)
-     ("2" (postpone) nil nil))
+     ("2" (expand "well_founded?")
+      (("2" (skolem!)
+        (("2" (inst -1 "p!1")
+          (("2" (flatten)
+            (("2" (skosimp)
+              (("2" (split)
+                (("1" (skosimp)
+                  (("1" (inst -1 "y!1")
+                    (("1" (assert)
+                      (("1" (inst 2 "y!1")
+                        (("1" (skosimp) (("1" (postpone) nil nil))
+                          nil))
+                        nil))
+                      nil))
+                    nil))
+                  nil)
+                 ("2" (postpone) nil nil))
+                nil))
+              nil))
+            nil))
+          nil))
+        nil))
+      nil))
     nil)
    nil shostak))
  (unstuff_TCC1 0
