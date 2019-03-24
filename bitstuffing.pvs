@@ -205,10 +205,18 @@ BEGIN
 	    (NOT head) AND stuffed?(tail) IMPLIES
 	        stuffed?(cons(head, tail))
 
+    % cons(TRUE, FALSE, (stuffed?)) ist auch immer stuffed
+    cons_true_false: FORMULA
+        FORALL(s: bit_seq):
+	    stuffed?(s) IMPLIES
+	    	stuffed?(cons(TRUE, cons(FALSE, s)))
+
     % Tail von einer "stuffed" Sequenz ist immer auch Stuffed
     tail_stuffed: FORMULA
         FORALL(s: min_seq(1)):
 	    stuffed?(s) IMPLIES stuffed?(tail(s))
+
+    
 
     % stuffed bit_seq an die ich immer vorne ein beliebiges bit anhängen kann
     % und sie dann immer noch stuffed ist
@@ -253,6 +261,12 @@ BEGIN
 	    ENDIF
 	ENDIF
     MEASURE s`length
+
+    % Wenn stuff mit one_count > 0 aufgerufen, kann vorne beliebiges bit
+    % angehangen werden und sequenz ist immer noch stuffed
+    stuff_param: FORMULA
+        FORALL(head: bool, s: bit_seq, one_count: above(0)):
+	    stuffed?(cons(head, stuff(s, one_count)))
 
     %get_i(seq: bit_seq, i: nat): RECURSIVE bool =
     %	IF seq`length = 1 THEN
