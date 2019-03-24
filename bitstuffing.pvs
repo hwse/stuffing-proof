@@ -58,7 +58,12 @@ BEGIN
 	    s1`length = 0 AND s2`length = 0 IMPLIES
 	        s1 = s2
 
-    % Sequenzen mit gleicher Länge und Werten sind im Kontext des Bitstuffung gleich
+    % Wenn einse Sequenz die Länge 0 hat ist es immer empty_seq --> Hilfsformel
+    zero_len: AXIOM
+        FORALL(s: bit_seq):
+	    s`length = 0 IMPLIES s = empty_seq
+
+    % Sequenzen mit gleicher Länge und gleichen Bits sind im Kontext des Bitstuffung gleich
     seq_eq: AXIOM
         FORALL(s1: bit_seq, s2: bit_seq):
 	    (s1`length = s2`length AND
@@ -137,6 +142,11 @@ BEGIN
     tail_cons: FORMULA
         FORALL(head: bool, tail: bit_seq):
 	    tail(cons(head, tail)) = tail
+
+    % Beweis über seq_eq axiom
+    cons_tail: FORMULA
+        FORALL(s: bit_seq):
+	    cons(s(0), tail(s)) = s
 
     %only_zero: AXIOM
     %    FORALL(x: bit_seq):
@@ -289,6 +299,38 @@ BEGIN
     %    FORALL(s: bit_seq, rep_count: between(1, s`length-1)):
     %	    (FORALL(i: between(0, rep_count-1)): s(i) IFF s(i+1) % rep_count ist #gleicher Bits am Anfang von s 
     %	    	IMPLIES consable?(stuff(tail(s), rep_count)))
+
+    % Bedingung das eine Zahl das Maximum einer Menge natürlicher Zahlen ist
+    is_max(set: pred[nat])(m: nat): bool =
+        NOT EXISTS(el:(set)): el > m
+
+    % Das Maximum für eine Menge natürlicher Zahlen
+    pred_max(p: (nonempty?[nat])): nat = the(is_max(p))
+
+
+    pred_max_spec: FORMULA
+        FORALL(p: (nonempty?[nat])):
+	    FORALL(other: (p)):
+	        NOT other > pred_max(p)
+
+    reversed_pred(p: pred[[nat, nat]]): pred[[nat, nat]] =
+        LAMBDA(x: nat, y: nat): p(y, x)
+
+    well_founded_rev: FORMULA
+        FORALL(p: pred[[nat, nat]]):
+	    well_founded?(p) IMPLIES well_founded?(reversed_pred(p))
+
+    % aus prelude übernommen
+    % the_prop_copy: AXIOM FORALL (p: (singleton?)): p(the(p))
+
+    stuff_first: FORMULA
+        FORALL(s: min_seq(1), x: nat):
+	    s(0) IFF stuff(s, x)(0)
+
+    % noch beweisen, falls nicht geht axiom
+    not_empty_len: FORMULA
+        FORALL(s: bit_seq):
+	    NOT(s = empty_seq) IMPLIES s`length > 0
 
     % Beweis 1:  Wenn stuff mit richtigen  aufgerufen wird, ist das Ergebnis
     % stuffed
