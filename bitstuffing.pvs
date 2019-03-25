@@ -145,7 +145,7 @@ BEGIN
 
     % Beweis über seq_eq axiom
     cons_tail: FORMULA
-        FORALL(s: bit_seq):
+        FORALL(s: min_seq(1)):
 	    cons(s(0), tail(s)) = s
 
     %only_zero: AXIOM
@@ -262,11 +262,30 @@ BEGIN
 	ENDIF
     MEASURE s`length
 
+    
+    below_empty: FORMULA
+        NOT EXISTS(n: below(0)): TRUE
+
+    forall_empty: FORMULA
+        FORALL(con: pred[nat], impl: bool):
+	    ((FORALL(n: below(0)): con(n)) IMPLIES impl) IMPLIES impl
+
     % Wenn stuff mit one_count > 0 aufgerufen, kann vorne beliebiges bit
     % angehangen werden und sequenz ist immer noch stuffed
     stuff_param: FORMULA
-        FORALL(head: bool, s: bit_seq, one_count: above(0)):
-	    stuffed?(cons(head, stuff(s, one_count)))
+        FORALL(s: bit_seq, one_count: above(1)):
+	    stuffed?(cons(TRUE, stuff(s, one_count)))
+
+    stuff_first_ones: FORMULA
+        FORALL(s: bit_seq, first_ones: below(s`length)):
+	    (FORALL(i: below(first_ones)): s(i)) IMPLIES
+	         stuffed?(stuff(s, first_ones))
+
+
+    % MAX_REP = 3
+    % s = 11
+    % i = 2
+    % 
 
     %get_i(seq: bit_seq, i: nat): RECURSIVE bool =
     %	IF seq`length = 1 THEN
