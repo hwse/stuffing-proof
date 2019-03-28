@@ -276,22 +276,39 @@ BEGIN
         FORALL(s: bit_seq, one_count: above(1)):
 	    stuffed?(cons(TRUE, stuff(s, one_count)))
 
-    stuff_first_ones: FORMULA
-        FORALL(s: bit_seq, first_ones: below(s`length)):
-	    (FORALL(i: below(first_ones)): s(i)) IMPLIES
-	         stuffed?(stuff(s, first_ones))
+    % wenn stuff(s, 0) --> muss spätestens bei seq(MAX_ONES) die 0 kommen
+    % wenn stuff(s, 1) --> muss spätestens bei seq(MAX_ONES-1) die 0 kommen
+    % wenn stuff(s, MAX_ONES-1) -> 10 (MAX_ONES-MAX_ONES+1)
+    stuff_creates_one: FORMULA
+        FORALL(s: min_seq(MAX_ONES+1), one_count: below(MAX_ONES)):
+            LET res = stuff(s, one_count) IN
+	    EXISTS(i: below(MAX_ONES-one_count+1)):
+	        NOT res(i)
 
+    %stuff_first_ones: FORMULA
+    %    FORALL(s: bit_seq):
+    %	    FORALL(start_range: maximal(s`length)):
+    %	    	(FORALL(i: below(first_ones)): s(i)) IMPLIES
+    %	            stuffed?(stuff(s, first_ones))
+
+
+    
 
     % MAX_REP = 3
     % s = 11
     % i = 2
     % 
 
-    %get_i(seq: bit_seq, i: nat): RECURSIVE bool =
-    %	IF seq`length = 1 THEN
-    %	    seq(0) ELSE
-    %	    get_i(tail(seq), i-1) ENDIF
-    %MEASURE seq`length
+    get_i(seq: min_seq(1), i: below(seq`length)): RECURSIVE bool =
+    	IF i = 0 THEN
+    	    seq(0) ELSE
+    	    get_i(tail(seq), i-1) ENDIF
+    MEASURE seq`length
+
+    get_works: FORMULA
+        FORALL(seq: min_seq(1)):
+	    FORALL(i: below(seq`length)):
+    	        get_i(seq, i) IFF seq(i)
 
     %get_i_tail: FORMULA
     %    FORALL(seq: min_seq(3), i: nat):
@@ -303,9 +320,7 @@ BEGIN
     %	1 + len(tail(seq)) ENDIF
     %MEASURE seq`length
 
-    %induct_test_1: FORMULA
-    %    FORALL(seq: min_seq(1)):
-    %	    seq`length = len(seq)
+
 
     %filter(seq: bit_seq): RECURSIVE bit_seq = 
     %    IF seq`length = 0 THEN empty_seq
