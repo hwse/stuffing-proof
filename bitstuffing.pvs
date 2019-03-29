@@ -234,14 +234,16 @@ BEGIN
 	    stuffed?(stuff(s, one_count)) IMPLIES
 	         stuffed?(cons(TRUE, stuff(s, one_count)))
 
+    % stuff erzeugt je nach one_count parameter an bestimmert stelle ein 0
+    % --> Nutzen für Beweis 1
     % wenn stuff(s, 0) --> muss spätestens bei seq(MAX_ONES) die 0 kommen
     % wenn stuff(s, 1) --> muss spätestens bei seq(MAX_ONES-1) die 0 kommen
     % wenn stuff(s, MAX_ONES-1) -> 10 (MAX_ONES-MAX_ONES+1)
     stuff_creates_one: FORMULA
         FORALL(s: min_seq(MAX_ONES+1), one_count: below(MAX_ONES)):
             LET res = stuff(s, one_count) IN
-	    EXISTS(i: below(MAX_ONES-one_count+1)):
-	        NOT res(i)
+	    (EXISTS(i: below(MAX_ONES-one_count+1)): NOT res(i))
+	    
 
     %stuff_first_ones: FORMULA
     %    FORALL(s: bit_seq):
