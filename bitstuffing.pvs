@@ -148,20 +148,6 @@ BEGIN
         FORALL(s: min_seq(1)):
 	    cons(s(0), tail(s)) = s
 
-    %only_zero: AXIOM
-    %    FORALL(x: bit_seq):
-    %	    (x`length = 0) IMPLIES x = empty_seq
-
-    %zeros_equal: AXIOM
-    %    FORALL(x: bit_seq, y: bit_seq):
-    %	    (x`length = 0 AND y`length = 0)
-    %	        IMPLIES (x = y)
-
-    % PROBLEM: lässt sich nicht beweisen
-    %tail_cons: AXIOM
-    %    FORALL(head: bool, seq: bit_seq):
-    %	    seq = tail(cons(head, seq))
-
     % ==== Hilfsformeln ====
     
     % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
@@ -216,35 +202,6 @@ BEGIN
         FORALL(s: min_seq(1)):
 	    stuffed?(s) IMPLIES stuffed?(tail(s))
 
-    
-
-    % stuffed bit_seq an die ich immer vorne ein beliebiges bit anhängen kann
-    % und sie dann immer noch stuffed ist
-    % consable?(s: bit_seq): bool =
-    %    s`length < MAX_ONES OR
-    %	(s`length >= MAX_ONES AND
-    %	NOT FORALL(i: between(0, MAX_ONES-2)): % Die ersten MAX_REP-1 Bits dürfen nicht gleich sein
-    %	    s(i) IFF s(i+1))
-
-    % Kombination von stuffed? und consable?
-    %stuffed_consable: TYPE = {s: bit_seq |
-    %    consable?(s) AND stuffed?(s)
-    %}
-
-    % wenn irgend ein bit an stuffed_consable angehängt wird ist dies immer noch stuffed?
-    %consable_stuffed: FORMULA % Problem Ungleichheit immer am 0.Bit festgemacht
-    %    FORALL(s: stuffed_consable, b: bool):
-    %	    stuffed?(cons(b, s))
-
-    %cons_consable: FORMULA
-    %    FORALL(head: bit, tail: (consable?)):
-    %	    consable?(cons(NOT head, cons(head, tail)))
-
-    %cons_consable_2: FORMULA
-    %    FORALL(head: bit, tail: (consable?)):
-    %	    (NOT FORALL(i: between(0, MAX_REP-2): head IFF tail(MAX_REP))  IMPLIES
-    %	        consable?(cons(bit, tail))
-
     % Füge eine 0 nach MAX_REP aufeinanderfolgenden Einsen ein. Ansonsten werden
     % keine Änderungen an der Eingabe gemacht.
     % s: Bitsequenz
@@ -274,7 +231,8 @@ BEGIN
     % angehangen werden und sequenz ist immer noch stuffed
     stuff_param: FORMULA
         FORALL(s: bit_seq, one_count: above(1)):
-	    stuffed?(cons(TRUE, stuff(s, one_count)))
+	    stuffed?(stuff(s, one_count)) IMPLIES
+	         stuffed?(cons(TRUE, stuff(s, one_count)))
 
     % wenn stuff(s, 0) --> muss spätestens bei seq(MAX_ONES) die 0 kommen
     % wenn stuff(s, 1) --> muss spätestens bei seq(MAX_ONES-1) die 0 kommen
@@ -310,67 +268,6 @@ BEGIN
 	    FORALL(i: below(seq`length)):
     	        get_i(seq, i) IFF seq(i)
 
-    %get_i_tail: FORMULA
-    %    FORALL(seq: min_seq(3), i: nat):
-    %        get_i(seq, i) = get_i(tail(seq), i-1)
-
-    %len(seq: min_seq(1)): RECURSIVE nat =
-    %    IF seq`length <= 1 THEN
-    %	1 ELSE
-    %	1 + len(tail(seq)) ENDIF
-    %MEASURE seq`length
-
-
-
-    %filter(seq: bit_seq): RECURSIVE bit_seq = 
-    %    IF seq`length = 0 THEN empty_seq
-    %	ELSE
-    %	    IF seq(0) THEN
-    %	    cons(true, filter(tail(seq))) ELSE
-    %	    filter(tail(seq)) ENDIF
-    %	ENDIF
-    %MEASURE seq`length
-
-    %induct_test_2: FORMULA
-    %    FORALL(seq: bit_seq):
-    % 	    LET res = filter(seq) IN
-    %	    FORALL(i: below(res`length)):
-    %	        res(i)
-
-    %induct_test_2: FORMULA
-    %    FORALL(seq: bit_seq, i: below(seq`length)):
-    %	    seq(i) = get_i(seq, i)
- 
-    % wenn ich stuff mit rep_count > 0 und korrekten parametern aufrufe,
-    % dann ist das ergebnis immer consable?
-    %stuff_consable: FORMULA
-    %    FORALL(s: bit_seq, rep_count: between(1, s`length-1)):
-    %	    (FORALL(i: between(0, rep_count-1)): s(i) IFF s(i+1) % rep_count ist #gleicher Bits am Anfang von s 
-    %	    	IMPLIES consable?(stuff(tail(s), rep_count)))
-
-    % Bedingung das eine Zahl das Maximum einer Menge natürlicher Zahlen ist
-    is_max(set: pred[nat])(m: nat): bool =
-        NOT EXISTS(el:(set)): el > m
-
-    % Das Maximum für eine Menge natürlicher Zahlen
-    pred_max(p: (nonempty?[nat])): nat = the(is_max(p))
-
-
-    pred_max_spec: FORMULA
-        FORALL(p: (nonempty?[nat])):
-	    FORALL(other: (p)):
-	        NOT other > pred_max(p)
-
-    reversed_pred(p: pred[[nat, nat]]): pred[[nat, nat]] =
-        LAMBDA(x: nat, y: nat): p(y, x)
-
-    well_founded_rev: FORMULA
-        FORALL(p: pred[[nat, nat]]):
-	    well_founded?(p) IMPLIES well_founded?(reversed_pred(p))
-
-    % aus prelude übernommen
-    % the_prop_copy: AXIOM FORALL (p: (singleton?)): p(the(p))
-
     stuff_first: FORMULA
         FORALL(s: min_seq(1), x: nat):
 	    s(0) IFF stuff(s, x)(0)
@@ -401,11 +298,6 @@ BEGIN
     	    ENDIF
 	ENDIF
     MEASURE s`length
-
-%    stuff_result: FORMULA
-%        FORALL(s: bit_seq):
-%	    stuff(s, 0, False) = IF (stuffed?(s)) THEN
-%	        s ELSE 
 
     % Beweis 2
     correct: FORMULA
