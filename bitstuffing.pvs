@@ -166,15 +166,6 @@ BEGIN
             LET c = cons(head, tail) IN
 	    (NOT (FORALL(i: between(0, MAX_ONES-2)): c(i) IFF c(i+1))) IMPLIES
 	         stuffed?(c)
-		
-    % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
-    %	   * head ungleich ersten Element von tail ist
-    % Beweis: Head ist unterschiedlich zu tail(0) -> also muss Eigenschaft erfüllt sein
-    % Beweis über cons_stuffed 
-    cons_xor: FORMULA
-        FORALL(head: bool, tail: min_stuffed(MAX_ONES+1)):
-	    (head XOR tail(0)) IMPLIES
-	        stuffed?(cons(head,tail))
 
     % Hilfsformel für Beweis mit Maßinduktion
     % 0 an stuffed sequenz angehangen ist immer noch eine stuffed sequenz
@@ -265,25 +256,6 @@ BEGIN
     %	    FORALL(start_range: maximal(s`length)):
     %	    	(FORALL(i: below(first_ones)): s(i)) IMPLIES
     %	            stuffed?(stuff(s, first_ones))
-
-
-    
-
-    % MAX_REP = 3
-    % s = 11
-    % i = 2
-    % 
-
-    get_i(seq: min_seq(1), i: below(seq`length)): RECURSIVE bool =
-    	IF i = 0 THEN
-    	    seq(0) ELSE
-    	    get_i(tail(seq), i-1) ENDIF
-    MEASURE seq`length
-
-    get_works: FORMULA
-        FORALL(seq: min_seq(1)):
-	    FORALL(i: below(seq`length)):
-    	        get_i(seq, i) IFF seq(i)
 
     stuff_first: FORMULA
         FORALL(s: min_seq(1), x: nat):
