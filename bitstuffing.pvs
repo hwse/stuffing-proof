@@ -227,13 +227,13 @@ BEGIN
         FORALL(con: pred[nat], impl: bool):
 	    ((FORALL(n: below(0)): con(n)) IMPLIES impl) IMPLIES impl
 
-    % Wenn stuff mit one_count > 0 aufgerufen, kann vorne beliebiges bit
-    % angehangen werden und sequenz ist immer noch stuffed
-    stuff_param: FORMULA
-        FORALL(s: bit_seq, one_count: above(1)):
-	    stuffed?(stuff(s, one_count)) IMPLIES
-	         stuffed?(cons(TRUE, stuff(s, one_count)))
+    
 
+    % stuff erzeugt je nach one_count parameter an bestimmert stelle ein 0
+    % --> Nutzen für Beweis 1
+    % wenn stuff(s, 0) --> muss spätestens bei seq(MAX_ONES) die 0 kommen
+    % wenn stuff(s, 1) --> muss spätestens bei seq(MAX_ONES-1) die 0 kommen
+    % wenn stuff(s, MAX_ONES-1) -> 10 (MAX_ONES-MAX_ONES+1)
     % i hier als Hilfsvariable um Induktion bei MAX_ONES-1 anzufangen
     stuff_creates_one_simple: FORMULA
         FORALL(i: below(MAX_ONES)):
@@ -242,16 +242,22 @@ BEGIN
 	        LET res = stuff(s, one_count) IN
 	        (EXISTS(i: below(MAX_ONES-one_count+1)): NOT res(i))
 
-    % stuff erzeugt je nach one_count parameter an bestimmert stelle ein 0
-    % --> Nutzen für Beweis 1
-    % wenn stuff(s, 0) --> muss spätestens bei seq(MAX_ONES) die 0 kommen
-    % wenn stuff(s, 1) --> muss spätestens bei seq(MAX_ONES-1) die 0 kommen
-    % wenn stuff(s, MAX_ONES-1) -> 10 (MAX_ONES-MAX_ONES+1)
-    stuff_creates_one: FORMULA
-        FORALL(one_count: below(MAX_ONES)):
-	    FORALL(s: min_seq(MAX_ONES-one_count+1)):
-               LET res = stuff(s, one_count) IN
-	       (EXISTS(i: below(MAX_ONES-one_count+1)): NOT res(i))
+    stuff_one_count_inc: AXIOM
+        FORALL(s: bit_seq):
+	    stuffed?(stuff(s, 0)) IMPLIES stuffed?(stuff(s, 1))
+
+    % Wenn stuff mit one_count > 0 aufgerufen, kann vorne beliebiges bit
+    % angehangen werden und sequenz ist immer noch stuffed
+    stuff_param: FORMULA
+        FORALL(s: bit_seq):
+	    stuffed?(stuff(s, 0)) IMPLIES
+	         stuffed?(cons(TRUE, stuff(s, 1)))
+    
+    %stuff_creates_one: FORMULA
+    %    FORALL(one_count: below(MAX_ONES)):
+    %	    FORALL(s: min_seq(MAX_ONES-one_count+1)):
+    %           LET res = stuff(s, one_count) IN
+    %	       (EXISTS(i: below(MAX_ONES-one_count+1)): NOT res(i))
 	    
 
     %stuff_first_ones: FORMULA
@@ -309,6 +315,14 @@ BEGIN
     	    ENDIF
 	ENDIF
     MEASURE s`length
+
+    unstuff_first: FORMULA
+        FORALL(s: min_seq(1), one_count: nat):
+	    s(0) = unstuff(s, one_count)(0)
+
+    correct_helper: FORMULA
+        FORALL(s: min_seq(1)):
+	    unstuff(stuff(tail(s), 0), 0) = unstuff(tail(stuff(s, 0)), 1)
 
     % Beweis 2
     correct: FORMULA
