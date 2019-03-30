@@ -1521,8 +1521,33 @@
    nil))
  (unstuff_TCC1 0
   (unstuff_TCC1-1 nil 3758000780
-   ("" (lemma "unstuff_tailable") (("" (propax) nil nil)) nil)
-   ((unstuff_tailable formula-decl nil bitstuffing nil)) nil))
+   ("" (lemma "unstuff_tailable")
+    (("" (skosimp)
+      (("" (inst -1 "s!1" "one_count!1") (("" (assert) nil nil)) nil))
+      nil))
+    nil)
+   ((int_minus_int_is_int application-judgement "int" integers nil)
+    (real_ge_is_total_order name-judgement "(total_order?[real])"
+     real_props nil)
+    (>= const-decl "bool" reals nil)
+    (int nonempty-type-eq-decl nil integers nil)
+    (integer_pred const-decl "[rational -> boolean]" integers nil)
+    (rational nonempty-type-from-decl nil rationals nil)
+    (rational_pred const-decl "[real -> boolean]" rationals nil)
+    (real nonempty-type-from-decl nil reals nil)
+    (real_pred const-decl "[number_field -> boolean]" reals nil)
+    (number_field nonempty-type-from-decl nil number_fields nil)
+    (number_field_pred const-decl "[number -> boolean]" number_fields
+     nil)
+    (number nonempty-type-decl nil numbers nil)
+    (stuffed? const-decl "bool" bitstuffing nil)
+    (bit_seq type-eq-decl nil bitstuffing nil)
+    (bool nonempty-type-eq-decl nil booleans nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (below type-eq-decl nil nat_types nil)
+    (nat nonempty-type-eq-decl nil naturalnumbers nil)
+    (unstuff_tailable formula-decl nil bitstuffing nil))
+   nil))
  (unstuff_TCC2 0
   (unstuff_TCC2-1 nil 3758000780
    ("" (skosimp)
@@ -1770,40 +1795,6 @@
     (finseq_appl const-decl "[below[length(fs)] -> T]" finite_sequences
      nil))
    nil))
- (unstuff_first_TCC1 0
-  (unstuff_first_TCC1-1 nil 3762860365 ("" (subtype-tcc) nil nil) nil
-   nil))
- (unstuff_first_TCC2 0
-  (unstuff_first_TCC2-1 nil 3762860365 ("" (subtype-tcc) nil nil) nil
-   nil))
- (unstuff_first_TCC3 0
-  (unstuff_first_TCC3-1 nil 3762920756 ("" (subtype-tcc) nil nil) nil
-   nil))
- (unstuff_first 0
-  (unstuff_first-1 nil 3762860367
-   ("" (skosimp) (("" (grind) nil nil)) nil)
-   ((finseq_appl const-decl "[below[length(fs)] -> T]" finite_sequences
-     nil)
-    (unstuff def-decl "bit_seq" bitstuffing nil)
-    (empty_seq const-decl "finseq" finite_sequences nil)
-    (min const-decl "{p: real | p <= m AND p <= n}" real_defs nil)
-    (^^ const-decl "finseq" finite_sequences nil)
-    (tail const-decl "fix_seq(s`length - 1)" bitstuffing nil)
-    (single const-decl "fix_seq(1)" bitstuffing nil)
-    (O const-decl "finseq" finite_sequences nil)
-    (cons const-decl "fix_seq(tail`length + 1)" bitstuffing nil)
-    (real_ge_is_total_order name-judgement "(total_order?[real])"
-     real_props nil)
-    (int_minus_int_is_int application-judgement "int" integers nil)
-    (posint_plus_nnint_is_posint application-judgement "posint"
-     integers nil)
-    (real_lt_is_strict_total_order name-judgement
-     "(strict_total_order?[real])" real_props nil)
-    (nnint_plus_posint_is_posint application-judgement "posint"
-     integers nil)
-    (int_min application-judgement "{k: int | k <= i AND k <= j}"
-     real_defs nil))
-   shostak))
  (correct_helper_TCC1 0
   (correct_helper_TCC1-1 nil 3762859668 ("" (subtype-tcc) nil nil) nil
    nil))

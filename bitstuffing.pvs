@@ -286,9 +286,9 @@ BEGIN
 	ENDIF
     MEASURE s`length
 
-    unstuff_first: FORMULA
-        FORALL(s: min_seq(1), one_count: nat):
-	    s(0) = unstuff(s, one_count)(0)
+    %unstuff_first: AXIOM
+    %    FORALL(s: min_seq(1), one_count: nat):
+    %	    s(0) = unstuff(s, one_count)(0)
 
     correct_helper: FORMULA
         FORALL(s: min_seq(1)):
