@@ -71,6 +71,11 @@ BEGIN
 	        s1`seq(i) IFF s2`seq(i)) IMPLIES
 		    s1 = s2
 
+    % noch beweisen, falls nicht geht axiom
+    not_empty_len: FORMULA
+        FORALL(s: bit_seq):
+	    NOT(s = empty_seq) IMPLIES s`length > 0
+
     % Bedingung für Ergebnis der "stuff" Funktions:
     % Maximal MAX_ONES Einsen in Bitfolge
     % Umsetzung: Vergleich Indizes 0-1,1-2,2-3,3-4,...
@@ -158,15 +163,6 @@ BEGIN
 	    (tail`length < MAX_ONES) IMPLIES
 	        stuffed?(cons(head,tail))
 
-    % Wenn ich Seqeunzen mit cons verbinde und Ersten MAX_ONES-1 Elemente von
-    % head verschieden sind ist wieder (stuffed?) erfüllt
-    % Beweis mit (case start=0) und dann mit cons_get und cons_first benutzen   
-    cons_stuffed: FORMULA
-        FORALL(head: bool, tail: min_stuffed(MAX_ONES+1)):
-            LET c = cons(head, tail) IN
-	    (NOT (FORALL(i: between(0, MAX_ONES-2)): c(i) IFF c(i+1))) IMPLIES
-	         stuffed?(c)
-
     % Hilfsformel für Beweis mit Maßinduktion
     % 0 an stuffed sequenz angehangen ist immer noch eine stuffed sequenz
     % Beweis: Fälle aufsplitten und durch Einsetzen der cons-Hilfsformeln lösen
@@ -183,7 +179,7 @@ BEGIN
 	        stuffed?(cons(head, tail))
 
     % cons(TRUE, FALSE, (stuffed?)) ist auch immer stuffed
-    cons_true_false: FORMULA
+    cons_true_false: AXIOM
         FORALL(s: bit_seq):
 	    stuffed?(s) IMPLIES
 	    	stuffed?(cons(TRUE, cons(FALSE, s)))
@@ -261,16 +257,18 @@ BEGIN
         FORALL(s: min_seq(1), x: nat):
 	    s(0) IFF stuff(s, x)(0)
 
-    % noch beweisen, falls nicht geht axiom
-    not_empty_len: FORMULA
-        FORALL(s: bit_seq):
-	    NOT(s = empty_seq) IMPLIES s`length > 0
-
     % Beweis 1:  Wenn stuff mit richtigen  aufgerufen wird, ist das Ergebnis
     % stuffed
     stuff_works: FORMULA
         FORALL(s: bit_seq):
 	    stuffed?(stuff(s, 0))
+
+    % für fall das tail(tail(s)) an unstuffe gegeben wird ist sequenz
+    unstuff_tailable: AXIOM
+        FORALL (s: (stuffed?), one_count: nat):
+            one_count >= MAX_ONES - 1 AND NOT s`length = 0
+            AND finseq_appl[boolean](s)(0) 
+                IMPLIES tail(s)`length >= 1;
 	    
     % Entferne Null nach MAX_REP aufeinanderfolgenden Einsen
     % s: Bit-Seqenz, welche die stuffed Eigenschafterfüllt
