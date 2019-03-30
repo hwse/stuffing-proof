@@ -33,7 +33,7 @@ BEGIN
     % * Ergebnis der stuff-Funktion erfüllt stuffed-Eigenschaft
     % * Information bleibt beim stuffing erhalten, also: unstuff(stuff(s)) = s, für alle s
     % 
-    % Im Beweis wird nicht 6, sondern beliebige Zahl > 0 als maximal Anzahl Einsen verwendet
+    % Im Beweis wird nicht 6, sondern beliebige Zahl > 1 als maximal Anzahl Einsen verwendet
 
     % Nach MAX_ONES aufeinanderfolgenden Einsen wird 0 eingefügt
     MAX_ONES: above(1)
@@ -50,7 +50,10 @@ BEGIN
     min_seq(n: nat): TYPE = {s: bit_seq | s`length >= n}
 
     % === Axiom fü Bitsequenzen ===
-    % Verwendungen dieser Axiome ist nötig, da PVS striktere Vorgaben zur Gleichheit verwendet.
+    % Verwendungen dieser Axiome ist nötig, da PVS striktere Vorgaben zur Gleichheit 
+    % Für Bitstuff hat Gleichheit Bedeutung:
+    % 	  * Länge zweier Sequenzen ist gleich
+    %	  * Alle Elemente der Sequenz sind gleich
     
     % Alle Seqeuenzen der Länge 0 sind im Kontext des Bitstuffing gleich
     zero_eq: AXIOM
@@ -71,11 +74,12 @@ BEGIN
 	        s1`seq(i) IFF s2`seq(i)) IMPLIES
 		    s1 = s2
 
-    % noch beweisen, falls nicht geht axiom
+    % Falls Sequenz nicht die leere Sequenz ist, muss die Länge größer 0 sein
     not_empty_len: FORMULA
         FORALL(s: bit_seq):
 	    NOT(s = empty_seq) IMPLIES s`length > 0
 
+    % === Stuffed-Eigenschaft ===
     % Bedingung für Ergebnis der "stuff" Funktions:
     % Maximal MAX_ONES Einsen in Bitfolge
     % Umsetzung: Vergleich Indizes 0-1,1-2,2-3,3-4,...
@@ -90,6 +94,10 @@ BEGIN
     fix_stuffed(l: nat): TYPE = {s: fix_seq(l) | stuffed?(s)}
     % stuffed Sequenz mit Länge >= l
     min_stuffed(l: nat): TYPE = {s: min_seq(l) | stuffed?(s)}
+
+    % === Funktionen auf Bitsequenzen ===
+    % In Anlehnung an die funktionale Programmierung werden die
+    % folgenden Funktionen verwendet um mit Bitsequenzen zu arbeiten
 
     % Sequenz mit genau einen bit
     single(el: bool): fix_seq(1) =
@@ -153,7 +161,7 @@ BEGIN
         FORALL(s: min_seq(1)):
 	    cons(s(0), tail(s)) = s
 
-    % ==== Hilfsformeln ====
+    % ==== andere Hilfsformeln ====
     
     % Wenn ich Element an stuffed Liste anhänge, ist dies auch stuffed wenn:
     % 	   * tail`length < MAX_ONES ist
@@ -189,6 +197,8 @@ BEGIN
         FORALL(s: min_seq(1)):
 	    stuffed?(s) IMPLIES stuffed?(tail(s))
 
+    % === Stuff-Funktion ===
+
     % Füge eine 0 nach MAX_REP aufeinanderfolgenden Einsen ein. Ansonsten werden
     % keine Änderungen an der Eingabe gemacht.
     % s: Bitsequenz
@@ -206,16 +216,8 @@ BEGIN
 	ENDIF
     MEASURE s`length
 
+    % === weiter Hilfsformeln ===
     
-    below_empty: FORMULA
-        NOT EXISTS(n: below(0)): TRUE
-
-    forall_empty: FORMULA
-        FORALL(con: pred[nat], impl: bool):
-	    ((FORALL(n: below(0)): con(n)) IMPLIES impl) IMPLIES impl
-
-    
-
     % stuff erzeugt je nach one_count parameter an bestimmert stelle ein 0
     % --> Nutzen für Beweis 1
     % wenn stuff(s, 0) --> muss spätestens bei seq(MAX_ONES) die 0 kommen
@@ -230,12 +232,15 @@ BEGIN
 	        (EXISTS(i: below(MAX_ONES-one_count+1)): NOT res(i))
 
     % Wenn one_count bei stuffed Aufruf erhöht wird ist Ergebnis
-    % trotzdem stuffed. 
+    % trotzdem stuffed. Durch das Erhöhen wird die 0 höchstens
+    % früher eingesetzt.
     stuff_one_count_inc: AXIOM
         FORALL(s: bit_seq):
 	    stuffed?(stuff(s, 0)) IMPLIES stuffed?(stuff(s, 1))
 
-    % Hilfsformel für stuff_param
+    % Hilfsformel für stuff_param:
+    % stuff-Funktion setzt keine Nullen ein, wenn Eingabesequenz
+    % weniger als MAX_ONES Elemente hat
     stuff_param_helper: AXIOM
         FORALL(s: bit_seq):
     	    s`length < MAX_ONES IMPLIES
@@ -254,11 +259,13 @@ BEGIN
         FORALL(s: min_seq(1), x: nat):
 	    s(0) IFF stuff(s, x)(0)
 
-    % Beweis 1:  Wenn stuff mit richtigen  aufgerufen wird, ist das Ergebnis
-    % stuffed
+    % === Beweis 1 ===
+    % Wenn stuff mit one_count=0 aufgerufen wird, ist das Ergebnis immer stuffed
     stuff_works: FORMULA
         FORALL(s: bit_seq):
 	    stuffed?(stuff(s, 0))
+
+    % === weiter Hilfsformeln ===
 
     % für fall das tail(tail(s)) an unstuffe gegeben wird ist sequenz
     unstuff_tailable: AXIOM
@@ -266,7 +273,8 @@ BEGIN
             one_count >= MAX_ONES - 1 AND NOT s`length = 0
             AND finseq_appl[boolean](s)(0) 
                 IMPLIES tail(s)`length >= 1;
-	    
+
+    % === Unstuff-Funktion ===
     % Entferne Null nach MAX_REP aufeinanderfolgenden Einsen
     % s: Bit-Seqenz, welche die stuffed Eigenschafterfüllt
     % one_count: Anzahl der bisherigen aufeinanderfolgenden Einsen aus vorherigen rekursiven Aufrufen
@@ -287,7 +295,8 @@ BEGIN
         FORALL(s: min_seq(1)):
 	    unstuff(stuff(tail(s), 0), 0) = unstuff(tail(stuff(s, 0)), 1)
 
-    % Beweis 2
+    % === Beweis 2 ===
+    % Sequenz, die eimal "gestopft" und wieder "entstopft" wird ist danach gleich.
     correct: FORMULA
         FORALL(s: bit_seq):
 	    s = unstuff(stuff(s, 0), 0)
