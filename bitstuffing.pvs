@@ -50,7 +50,7 @@ BEGIN
     min_seq(n: nat): TYPE = {s: bit_seq | s`length >= n}
 
     % === Axiom fü Bitsequenzen ===
-    % Verwendungen dieser Axiome ist nötig, da PVS striktere Vorgaben zur Gleichheit 
+    % Verwendungen dieser Axiome ist nötig, da PVS striktere Vorgaben zur Gleichheit hat
     % Für Bitstuff hat Gleichheit Bedeutung:
     % 	  * Länge zweier Sequenzen ist gleich
     %	  * Alle Elemente der Sequenz sind gleich
@@ -61,7 +61,8 @@ BEGIN
 	    s1`length = 0 AND s2`length = 0 IMPLIES
 	        s1 = s2
 
-    % Wenn einse Sequenz die Länge 0 hat ist es immer empty_seq --> Hilfsformel
+    % Wenn eine Sequenz die Länge 0 hat ist sie immer gleich empty_seq
+    % Für den hier betrachteten Fall ist nur eine leere Sequenz benötigt.
     zero_len: AXIOM
         FORALL(s: bit_seq):
 	    s`length = 0 IMPLIES s = empty_seq
@@ -119,22 +120,18 @@ BEGIN
         FORALL(b: bool, tail: bit_seq):
 	    b IFF (cons(b,tail)(0))
 
-    % Beweis über expanden der ganzen Funktionen
     cons_first_tail: FORMULA
         FORALL(b: bool, tail: min_seq(1)):
 	    tail(0) IFF cons(b, tail)(1)
 
-    % Beweis über expanden der ganzen Funktionen
     cons_length: FORMULA
         FORALL(head: bool, tail: bit_seq):
 	    cons(head, tail)`length = tail`length + 1
 
-    % Wie oben
     cons_get: FORMULA
         FORALL(head: bool, tail: bit_seq)(i: between(0, tail`length-1)):
 	     tail(i) IFF cons(head, tail)(i+1)
 
-    % Wie oben
     cons_get_2: FORMULA
         FORALL(head: bool, tail: bit_seq, i: below(tail`length-1)):
 	    cons(head, tail)(i) =
@@ -172,7 +169,7 @@ BEGIN
 	        stuffed?(cons(head,tail))
 
     % Hilfsformel für Beweis mit Maßinduktion
-    % 0 an stuffed sequenz angehangen ist immer noch eine stuffed sequenz
+    % Wenn 0 an stuffed sequenz angehangen wird, ist sie immer noch eine stuffed sequenz
     % Beweis: Fälle aufsplitten und durch Einsetzen der cons-Hilfsformeln lösen
     cons_zero: FORMULA
         FORALL(head: bool, tail: (stuffed?)):
@@ -186,7 +183,9 @@ BEGIN
 	    (NOT head) AND stuffed?(tail) IMPLIES
 	        stuffed?(cons(head, tail))
 
-    % cons(TRUE, FALSE, (stuffed?)) ist auch immer stuffed
+    % cons(TRUE, FALSE, (stuffed?)) ist immer stuffed, da
+    % cons(FALSE, (stuffed?) ist und
+    % ein angehangens TRUE < MAX_ONES Wiederholungen
     cons_true_false: AXIOM
         FORALL(s: bit_seq):
 	    stuffed?(s) IMPLIES
@@ -276,7 +275,7 @@ BEGIN
 
     % === Unstuff-Funktion ===
     % Entferne Null nach MAX_REP aufeinanderfolgenden Einsen
-    % s: Bit-Seqenz, welche die stuffed Eigenschafterfüllt
+    % s: Bit-Seqenz, welche die stuffed Eigenschafter füllt
     % one_count: Anzahl der bisherigen aufeinanderfolgenden Einsen aus vorherigen rekursiven Aufrufen
     unstuff(s: (stuffed?), one_count: nat): RECURSIVE bit_seq =
         IF s`length = 0 THEN

@@ -1005,10 +1005,6 @@
     (finseq_appl const-decl "[below[length(fs)] -> T]" finite_sequences
      nil))
    nil))
- (below_empty 0
-  (below_empty-1 nil 3762531956 ("" (grind) nil nil) nil shostak))
- (forall_empty 0
-  (forall_empty-1 nil 3762531404 ("" (grind) nil nil) nil shostak))
  (stuff_creates_one_simple_TCC1 0
   (stuff_creates_one_simple_TCC1-1 nil 3762845861
    ("" (subtype-tcc) nil nil)
