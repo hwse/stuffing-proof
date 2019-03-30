@@ -36,7 +36,7 @@ BEGIN
     % Im Beweis wird nicht 6, sondern beliebige Zahl > 0 als maximal Anzahl Einsen verwendet
 
     % Nach MAX_ONES aufeinanderfolgenden Einsen wird 0 eingefügt
-    MAX_ONES: above(0)
+    MAX_ONES: above(1)
 
     % Hilfstypen
     maximal(m: nat): TYPE = {n: nat | n <= m}
@@ -229,30 +229,27 @@ BEGIN
 	        LET res = stuff(s, one_count) IN
 	        (EXISTS(i: below(MAX_ONES-one_count+1)): NOT res(i))
 
+    % Wenn one_count bei stuffed Aufruf erhöht wird ist Ergebnis
+    % trotzdem stuffed. 
     stuff_one_count_inc: AXIOM
         FORALL(s: bit_seq):
 	    stuffed?(stuff(s, 0)) IMPLIES stuffed?(stuff(s, 1))
 
+    % Hilfsformel für stuff_param
+    stuff_param_helper: AXIOM
+        FORALL(s: bit_seq):
+    	    s`length < MAX_ONES IMPLIES
+    	        stuff(s,1)`length < MAX_ONES
+
     % Wenn stuff mit one_count > 0 aufgerufen, kann vorne beliebiges bit
     % angehangen werden und sequenz ist immer noch stuffed
+    % --> Hilfsformel für stuff_works
     stuff_param: FORMULA
         FORALL(s: bit_seq):
 	    stuffed?(stuff(s, 0)) IMPLIES
 	         stuffed?(cons(TRUE, stuff(s, 1)))
-    
-    %stuff_creates_one: FORMULA
-    %    FORALL(one_count: below(MAX_ONES)):
-    %	    FORALL(s: min_seq(MAX_ONES-one_count+1)):
-    %           LET res = stuff(s, one_count) IN
-    %	       (EXISTS(i: below(MAX_ONES-one_count+1)): NOT res(i))
-	    
 
-    %stuff_first_ones: FORMULA
-    %    FORALL(s: bit_seq):
-    %	    FORALL(start_range: maximal(s`length)):
-    %	    	(FORALL(i: below(first_ones)): s(i)) IMPLIES
-    %	            stuffed?(stuff(s, first_ones))
-
+    % Erste Element einer Sequenz ist nach Aufruf von stuff gleich
     stuff_first: FORMULA
         FORALL(s: min_seq(1), x: nat):
 	    s(0) IFF stuff(s, x)(0)
@@ -286,11 +283,7 @@ BEGIN
 	ENDIF
     MEASURE s`length
 
-    %unstuff_first: AXIOM
-    %    FORALL(s: min_seq(1), one_count: nat):
-    %	    s(0) = unstuff(s, one_count)(0)
-
-    correct_helper: FORMULA
+    correct_helper: AXIOM
         FORALL(s: min_seq(1)):
 	    unstuff(stuff(tail(s), 0), 0) = unstuff(tail(stuff(s, 0)), 1)
 
